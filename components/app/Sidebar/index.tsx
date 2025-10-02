@@ -1,31 +1,18 @@
 "use client";
 
+import {
+  FileText,
+  FolderOpen,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Users,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  FolderOpen, 
-  Users, 
-  Search,
-  Smartphone,
-  Monitor,
-  Palette,
-  BookOpen,
-  FileText,
-  MoreHorizontal
-} from "lucide-react";
 
 export default function Sidebar() {
-  const tags = [
-    { name: "UI/UX", icon: Palette },
-    { name: "Web Dev", icon: Monitor },
-    { name: "Mobile", icon: Smartphone },
-    { name: "Design System", icon: Palette },
-    { name: "Research", icon: BookOpen },
-  ];
-
   // Sample projects data
   const projects = [
     { id: 1, title: "Dashboard Redesign", isActive: true },
@@ -48,11 +35,15 @@ export default function Sidebar() {
             </AvatarFallback>
           </Avatar>
           <div>
-            <h2 className="font-semibold text-sidebar-foreground text-lg">Sophia Carter</h2>
-            <p className="text-sm text-sidebar-foreground/70">Product Designer</p>
+            <h2 className="font-semibold text-sidebar-foreground text-lg">
+              Sophia Carter
+            </h2>
+            <p className="text-sm text-sidebar-foreground/70">
+              Product Designer
+            </p>
           </div>
         </div>
-        
+
         {/* New Project Button */}
         <Button className="w-full bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground font-medium h-11 rounded-lg">
           <Plus className="h-4 w-4 mr-2" />
@@ -63,7 +54,7 @@ export default function Sidebar() {
       {/* Navigation Section */}
       <div className="p-6 space-y-4 flex-1 overflow-hidden flex flex-col">
         {/* My Projects */}
-        <Button 
+        <Button
           variant="default"
           className="w-full justify-start h-11 rounded-lg font-medium"
         >
@@ -72,8 +63,8 @@ export default function Sidebar() {
         </Button>
 
         {/* Shared with Me */}
-        <Button 
-          variant="secondary" 
+        <Button
+          variant="secondary"
           className="w-full justify-start h-11 rounded-lg font-medium"
         >
           <Users className="h-4 w-4 mr-3" />
@@ -84,7 +75,7 @@ export default function Sidebar() {
         <div className="relative pt-2 flex items-center">
           <Search className="absolute left-3 h-4 w-4 text-sidebar-foreground/50" />
           <Input
-            placeholder="Search projects..." 
+            placeholder="Search projects..."
             className="pl-10 h-11 rounded-lg"
           />
         </div>
@@ -100,8 +91,8 @@ export default function Sidebar() {
                 key={project.id}
                 className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
                   project.isActive
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                    : 'hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground'
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"
                 }`}
               >
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -121,26 +112,7 @@ export default function Sidebar() {
             ))}
           </div>
         </div>
-
-        {/* Tags Section */}
-        <div className="pt-4 border-t border-sidebar-border/50">
-          <h3 className="text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider mb-4">
-            TAGS
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <Badge 
-                key={tag.name}
-                variant="secondary"
-                className="bg-sidebar-accent/50 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground cursor-pointer transition-colors border-0 px-3 py-1.5 rounded-md"
-              >
-                <tag.icon className="h-3 w-3 mr-1.5" />
-                {tag.name}
-              </Badge>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
-};
+}
