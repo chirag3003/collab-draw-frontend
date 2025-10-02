@@ -1,10 +1,31 @@
 "use client";
 
-import dynamic from 'next/dynamic';
+import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
+import type { AppState } from "@excalidraw/excalidraw/types";
+import dynamic from "next/dynamic";
+import { useCallback, useState } from "react";
+
+function debounceUpdate(delay = 500) {
+  let timeoutId: NodeJS.Timeout;
+  return (
+    elements: readonly OrderedExcalidrawElement[],
+    appState: AppState,
+  ) => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      console.log({
+        elements,
+        appState,
+      });
+    }, delay);
+  };
+}
 
 // Dynamically import Excalidraw to avoid SSR issues
 const Excalidraw = dynamic(
-  async () => (await import('@excalidraw/excalidraw')).Excalidraw,
+  async () => (await import("@excalidraw/excalidraw")).Excalidraw,
   {
     ssr: false,
     loading: () => (
@@ -15,16 +36,39 @@ const Excalidraw = dynamic(
         </div>
       </div>
     ),
-  }
+  },
 );
 
 export default function ProjectPage() {
+  const [data, setData] = useState<
+    | {
+        appState: AppState;
+        elements: OrderedExcalidrawElement[];
+      }
+    | undefined
+  >(undefined);
+
+  const onUpdate = useCallback(debounceUpdate(), []);
+
+  function onChange(
+    elements: readonly OrderedExcalidrawElement[],
+    appState: AppState,
+  ) {
+    onUpdate(elements, appState);
+  }
+
   return (
     <div className="w-full h-full">
-      <Excalidraw 
+      <Excalidraw
         theme="light"
         isCollaborating={false}
-        initialData={undefined}
+        initialData={
+          data && {
+            appState: data?.appState,
+            elements: data?.elements,
+          }
+        }
+        onChange={(elements, appState) => onChange(elements, appState)}
       />
     </div>
   );
