@@ -107,7 +107,7 @@ export default function ProjectsList({
           </p>
         </div>
         <div className="controls flex space-x-3">
-          <ShareWorkspaceDialog 
+          <ShareWorkspaceDialog
             currentUsers={currentUsers}
             onAddUser={handleAddUser}
             onRemoveUser={handleRemoveUser}
@@ -150,37 +150,9 @@ export default function ProjectsList({
                 <CalendarDays className="h-4 w-4 mr-2" />
                 Created {formatDate(project.createdDate)}
               </div>
-
-              {/* Collaborators */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Team:</span>
-                <div className="flex -space-x-2">
-                  {project.collaborators.slice(0, 4).map((collaborator) => (
-                    <Avatar
-                      key={collaborator.id}
-                      className="h-6 w-6 border-2 border-background"
-                    >
-                      <AvatarImage
-                        src={collaborator.avatar}
-                        alt={collaborator.name}
-                      />
-                      <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                        {collaborator.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                  ))}
-                  {project.collaborators.length > 4 && (
-                    <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center">
-                      <span className="text-xs text-muted-foreground font-medium">
-                        +{project.collaborators.length - 4}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
             </CardContent>
 
-            <CardFooter className="p-4 pt-0">
+            <CardFooter className="px-4">
               <Link
                 href={`/projects/${project.id}`}
                 target="_blank"
