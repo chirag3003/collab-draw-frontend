@@ -4,13 +4,13 @@ import {
   FileText,
   FolderOpen,
   MoreHorizontal,
-  Plus,
   Search,
   Users,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import CreateWorkspaceDialog from "./CreateWorkspaceDialog";
 
 export default function Sidebar() {
   // Sample workspace data
@@ -22,6 +22,12 @@ export default function Sidebar() {
     { id: 5, title: "Marketing Website", isActive: false },
     { id: 6, title: "E-commerce Platform", isActive: false },
   ];
+
+  const handleCreateWorkspace = (data: { title: string; description: string }) => {
+    // TODO: Implement workspace creation logic
+    console.log("Creating workspace:", data);
+    // Here you would typically make an API call to create the workspace
+  };
 
   return (
     <div className="w-80 h-screen border-r border-sidebar-border flex flex-col">
@@ -45,10 +51,7 @@ export default function Sidebar() {
         </div>
 
         {/* New workspace Button */}
-        <Button className="w-full bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground font-medium h-11 rounded-lg">
-          <Plus className="h-4 w-4 mr-2" />
-          New Workspace
-        </Button>
+        <CreateWorkspaceDialog onCreateWorkspace={handleCreateWorkspace} />
       </div>
 
       {/* Navigation Section */}
