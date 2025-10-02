@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function Sidebar() {
-  // Sample projects data
-  const projects = [
+  // Sample workspace data
+  const workspace = [
     { id: 1, title: "Dashboard Redesign", isActive: true },
     { id: 2, title: "Mobile App Wireframes", isActive: false },
     { id: 3, title: "Logo Design System", isActive: false },
@@ -44,22 +44,22 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* New Project Button */}
+        {/* New workspace Button */}
         <Button className="w-full bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground font-medium h-11 rounded-lg">
           <Plus className="h-4 w-4 mr-2" />
-          New Project
+          New Workspace
         </Button>
       </div>
 
       {/* Navigation Section */}
       <div className="p-6 space-y-4 flex-1 overflow-hidden flex flex-col">
-        {/* My Projects */}
+        {/* My Workspace */}
         <Button
           variant="default"
           className="w-full justify-start h-11 rounded-lg font-medium"
         >
           <FolderOpen className="h-4 w-4 mr-3" />
-          My Projects
+          My Workspace
         </Button>
 
         {/* Shared with Me */}
@@ -75,18 +75,18 @@ export default function Sidebar() {
         <div className="relative pt-2 flex items-center">
           <Search className="absolute left-3 h-4 w-4 text-sidebar-foreground/50" />
           <Input
-            placeholder="Search projects..."
+            placeholder="Search workspaces..."
             className="pl-10 h-11 rounded-lg"
           />
         </div>
 
-        {/* Projects List */}
+        {/* Workspace List */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <h3 className="text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider mb-3 mt-4">
-            RECENT PROJECTS
+            RECENT WORKSPACE
           </h3>
           <div className="flex-1 overflow-y-auto space-y-1 pr-2">
-            {projects.map((project) => (
+            {workspace.map((project) => (
               <div
                 key={project.id}
                 className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
