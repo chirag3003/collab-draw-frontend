@@ -40,6 +40,7 @@ interface User {
 interface WorkspaceListProps {
   projects: Project[];
   details?: { title: string; description: string };
+  personal: boolean;
   currentUsers?: User[];
   onCreateProject?: (data: { title: string }) => void;
   onAddUser?: (email: string) => void;
@@ -49,6 +50,7 @@ interface WorkspaceListProps {
 export default function ProjectsList({
   projects,
   details,
+  personal = false,
   currentUsers = [],
   onCreateProject,
   onAddUser,
@@ -105,15 +107,17 @@ export default function ProjectsList({
               "Continue working on your projects or start something new"}
           </p>
         </div>
-        <div className="controls flex space-x-3">
-          <ShareWorkspaceDialog
-            currentUsers={currentUsers}
-            onAddUser={handleAddUser}
-            onRemoveUser={handleRemoveUser}
-            workspaceTitle={details?.title}
-          />
-          <CreateProjectDialog onCreateProject={handleCreateProject} />
-        </div>
+        {!personal && (
+          <div className="controls flex space-x-3">
+            <ShareWorkspaceDialog
+              currentUsers={currentUsers}
+              onAddUser={handleAddUser}
+              onRemoveUser={handleRemoveUser}
+              workspaceTitle={details?.title}
+            />
+            <CreateProjectDialog onCreateProject={handleCreateProject} />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

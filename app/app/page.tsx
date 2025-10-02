@@ -131,6 +131,7 @@ export default function App() {
           projects={sampleProjects}
           currentUsers={sampleUsers}
           onCreateProject={handleCreateProject}
+          personal={false}
           onAddUser={handleAddUser}
           onRemoveUser={handleRemoveUser}
         />
