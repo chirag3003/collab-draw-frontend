@@ -78,21 +78,61 @@ export default function App() {
     },
   ];
 
+  // Sample users data
+  const sampleUsers = [
+    {
+      id: "1",
+      name: "Sophia Carter",
+      email: "sophia.carter@company.com",
+      initials: "SC",
+      avatar: "/avatar-1.jpg",
+      role: "owner" as const,
+    },
+    {
+      id: "2",
+      name: "John Doe",
+      email: "john.doe@company.com",
+      initials: "JD",
+      avatar: "/avatar-2.jpg",
+      role: "editor" as const,
+    },
+    {
+      id: "3",
+      name: "Jane Smith",
+      email: "jane.smith@company.com",
+      initials: "JS",
+      role: "viewer" as const,
+    },
+  ];
+
+  const handleCreateProject = (data: { title: string }) => {
+    // TODO: Implement project creation logic
+    console.log("Creating project:", data);
+    // Here you would typically make an API call to create the project
+    // and then redirect to the project editor or refresh the project list
+  };
+
+  const handleAddUser = async (email: string) => {
+    // TODO: Implement user invitation logic
+    console.log("Inviting user:", email);
+    // Here you would typically make an API call to invite the user
+  };
+
+  const handleRemoveUser = (userId: string) => {
+    // TODO: Implement user removal logic
+    console.log("Removing user:", userId);
+    // Here you would typically make an API call to remove the user
+  };
+
   return (
     <div className="h-full p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, Sophia
-          </h1>
-          <p className="text-muted-foreground">
-            Continue working on your projects or start something new
-          </p>
-        </div>
-
         <ProjectsList
           projects={sampleProjects}
-          //   title="My Projects"
+          currentUsers={sampleUsers}
+          onCreateProject={handleCreateProject}
+          onAddUser={handleAddUser}
+          onRemoveUser={handleRemoveUser}
         />
       </div>
     </div>

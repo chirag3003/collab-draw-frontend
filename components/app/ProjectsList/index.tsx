@@ -3,7 +3,6 @@
 import { CalendarDays, ExternalLink, Users } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +11,8 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import CreateProjectDialog from "./CreateProjectDialog";
+import ShareWorkspaceDialog from "./ShareWorkspaceDialog";
 
 interface Collaborator {
   id: string;
@@ -26,19 +27,34 @@ interface Project {
   createdDate: string;
   bannerImage?: string;
   collaborators: Collaborator[];
-  isShared?: boolean;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  initials: string;
+  role: "owner" | "editor" | "viewer";
 }
 
 interface WorkspaceListProps {
   projects: Project[];
-  title?: string;
+  details?: { title: string; description: string };
+  currentUsers?: User[];
+  onCreateProject?: (data: { title: string }) => void;
+  onAddUser?: (email: string) => void;
+  onRemoveUser?: (userId: string) => void;
 }
 
 export default function ProjectsList({
   projects,
-  title,
+  details,
+  currentUsers = [],
+  onCreateProject,
+  onAddUser,
+  onRemoveUser,
 }: WorkspaceListProps) {
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -48,16 +64,58 @@ export default function ProjectsList({
     });
   };
 
+  const handleCreateProject = (data: { title: string }) => {
+    // Call the parent callback if provided
+    if (onCreateProject) {
+      onCreateProject(data);
+    } else {
+      // TODO: Implement project creation logic
+      console.log("Creating project:", data);
+    }
+  };
+
+  const handleAddUser = async (email: string) => {
+    // Call the parent callback if provided
+    if (onAddUser) {
+      await onAddUser(email);
+    } else {
+      // TODO: Implement user invitation logic
+      console.log("Inviting user:", email);
+    }
+  };
+
+  const handleRemoveUser = (userId: string) => {
+    // Call the parent callback if provided
+    if (onRemoveUser) {
+      onRemoveUser(userId);
+    } else {
+      // TODO: Implement user removal logic
+      console.log("Removing user:", userId);
+    }
+  };
+
   return (
     <div className="w-full">
-      {title && (
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-foreground mb-2">{title}</h2>
+      <div className="header flex justify-between items-start mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {details?.title || "Welcome back, Sophia"}
+          </h1>
           <p className="text-muted-foreground">
-            {projects.length} {projects.length === 1 ? "project" : "projects"}
+            {details?.description ||
+              "Continue working on your projects or start something new"}
           </p>
         </div>
-      )}
+        <div className="controls flex space-x-3">
+          <ShareWorkspaceDialog 
+            currentUsers={currentUsers}
+            onAddUser={handleAddUser}
+            onRemoveUser={handleRemoveUser}
+            workspaceTitle={details?.title}
+          />
+          <CreateProjectDialog onCreateProject={handleCreateProject} />
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {projects.map((project) => (
@@ -77,15 +135,6 @@ export default function ProjectsList({
                       {project.title.charAt(0).toUpperCase()}
                     </div>
                   </div>
-                )}
-                {project.isShared && (
-                  <Badge
-                    variant="secondary"
-                    className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm"
-                  >
-                    <Users className="h-3 w-3 mr-1" />
-                    Shared
-                  </Badge>
                 )}
               </div>
             </CardHeader>
