@@ -2,7 +2,7 @@
 
 import ProjectsList from "@/components/app/ProjectsList";
 
-export default function App() {
+export default function WorkspaceApp() {
   // Sample projects data
   const sampleProjects = [
     {
@@ -21,19 +21,6 @@ export default function App() {
         { id: "3", name: "Jane Smith", initials: "JS" },
       ],
       isShared: false,
-    },
-    {
-      id: "2",
-      title: "Mobile App Wireframes",
-      createdDate: "2024-09-20",
-      collaborators: [
-        { id: "1", name: "Sophia Carter", initials: "SC" },
-        { id: "4", name: "Mike Johnson", initials: "MJ" },
-        { id: "5", name: "Sarah Wilson", initials: "SW" },
-        { id: "6", name: "Tom Brown", initials: "TB" },
-        { id: "7", name: "Lisa Davis", initials: "LD" },
-      ],
-      isShared: true,
     },
     {
       id: "3",
@@ -131,7 +118,7 @@ export default function App() {
           projects={sampleProjects}
           currentUsers={sampleUsers}
           onCreateProject={handleCreateProject}
-          personal={true}
+          personal={false}
           onAddUser={handleAddUser}
           onRemoveUser={handleRemoveUser}
         />
