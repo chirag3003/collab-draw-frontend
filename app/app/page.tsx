@@ -11,7 +11,12 @@ export default function App() {
       createdDate: "2024-09-15",
       bannerImage: "/placeholder-project-1.jpg",
       collaborators: [
-        { id: "1", name: "Sophia Carter", initials: "SC", avatar: "/avatar-1.jpg" },
+        {
+          id: "1",
+          name: "Sophia Carter",
+          initials: "SC",
+          avatar: "/avatar-1.jpg",
+        },
         { id: "2", name: "John Doe", initials: "JD", avatar: "/avatar-2.jpg" },
         { id: "3", name: "Jane Smith", initials: "JS" },
       ],
@@ -57,9 +62,7 @@ export default function App() {
       title: "Marketing Website Redesign",
       createdDate: "2024-10-01",
       bannerImage: "/placeholder-project-3.jpg",
-      collaborators: [
-        { id: "1", name: "Sophia Carter", initials: "SC" },
-      ],
+      collaborators: [{ id: "1", name: "Sophia Carter", initials: "SC" }],
       isShared: false,
     },
     {
@@ -75,11 +78,6 @@ export default function App() {
     },
   ];
 
-  const handleOpenProject = (projectId: string) => {
-    // Open project in new tab
-    window.open(`/projects/${projectId}`, '_blank');
-  };
-
   return (
     <div className="h-full p-8">
       <div className="max-w-7xl mx-auto">
@@ -92,10 +90,9 @@ export default function App() {
           </p>
         </div>
 
-        <ProjectsList 
+        <ProjectsList
           projects={sampleProjects}
-        //   title="My Projects"
-          onOpenProject={handleOpenProject}
+          //   title="My Projects"
         />
       </div>
     </div>

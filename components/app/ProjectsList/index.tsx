@@ -1,13 +1,17 @@
 "use client";
 
 import { CalendarDays, ExternalLink, Users } from "lucide-react";
-import { Avatar, AvatarFallback, 
-    AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface Collaborator {
   id: string;
@@ -28,38 +32,32 @@ interface Project {
 interface WorkspaceListProps {
   projects: Project[];
   title?: string;
-  onOpenProject?: (projectId: string) => void;
 }
 
-export default function ProjectsList({ 
-  projects, 
+export default function ProjectsList({
+  projects,
   title,
-  onOpenProject 
 }: WorkspaceListProps) {
-  
-  const handleOpenProject = (projectId: string) => {
-    if (onOpenProject) {
-      onOpenProject(projectId);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   return (
     <div className="w-full">
-      {title && <div className="mb-6">
-        <h2 className="text-2xl font-bold text-foreground mb-2">{title}</h2>
-        <p className="text-muted-foreground">
-          {projects.length} {projects.length === 1 ? 'project' : 'projects'}
-        </p>
-      </div>}
+      {title && (
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-foreground mb-2">{title}</h2>
+          <p className="text-muted-foreground">
+            {projects.length} {projects.length === 1 ? "project" : "projects"}
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {projects.map((project) => (
@@ -69,7 +67,7 @@ export default function ProjectsList({
               <div className="relative w-full h-36 bg-muted rounded-t-lg overflow-hidden">
                 {project.bannerImage ? (
                   <img
-                    src={"https://placehold.co/400x200"} 
+                    src={"https://placehold.co/400x200"}
                     alt={`${project.title} preview`}
                     className="object-cover"
                   />
@@ -81,8 +79,8 @@ export default function ProjectsList({
                   </div>
                 )}
                 {project.isShared && (
-                  <Badge 
-                    variant="secondary" 
+                  <Badge
+                    variant="secondary"
                     className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm"
                   >
                     <Users className="h-3 w-3 mr-1" />
@@ -109,8 +107,14 @@ export default function ProjectsList({
                 <span className="text-sm text-muted-foreground">Team:</span>
                 <div className="flex -space-x-2">
                   {project.collaborators.slice(0, 4).map((collaborator) => (
-                    <Avatar key={collaborator.id} className="h-6 w-6 border-2 border-background">
-                      <AvatarImage src={collaborator.avatar} alt={collaborator.name} />
+                    <Avatar
+                      key={collaborator.id}
+                      className="h-6 w-6 border-2 border-background"
+                    >
+                      <AvatarImage
+                        src={collaborator.avatar}
+                        alt={collaborator.name}
+                      />
                       <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                         {collaborator.initials}
                       </AvatarFallback>
@@ -128,7 +132,7 @@ export default function ProjectsList({
             </CardContent>
 
             <CardFooter className="p-4 pt-0">
-              <Link 
+              <Link
                 href={`/projects/${project.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
