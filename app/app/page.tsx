@@ -1,8 +1,21 @@
 "use client";
 
 import ProjectsList from "@/components/app/ProjectsList";
+import { gql } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
+
+const QUERY = gql`query GetProjects{
+  projects{
+    id,
+    name,
+    owner
+  }
+}`;
 
 export default function App() {
+  const { data, loading, error } = useQuery(QUERY);
+  console.log({data, loading, error});
+
   // Sample projects data
   const sampleProjects = [
     {

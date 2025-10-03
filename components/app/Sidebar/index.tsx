@@ -11,8 +11,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CreateWorkspaceDialog from "./CreateWorkspaceDialog";
+import { useWorkspaces } from "@/lib/hooks/workspace";
 
-export default function Sidebar() {
+interface SidebarProps {
+  userID: string;
+}
+
+export default function Sidebar({ userID }: SidebarProps) {
+  const { data: workspaces } = useWorkspaces(userID);
+  console.log("Workspaces:", workspaces);
   // Sample workspace data
   const workspace = [
     { id: 1, title: "Dashboard Redesign", isActive: true },

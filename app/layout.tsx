@@ -1,10 +1,9 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import {
-  ClerkProvider,
-} from "@clerk/nextjs";
 import "./globals.css";
 import "@excalidraw/excalidraw/index.css";
+import ApolloProvider from "@/components/providers/ApolloProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,14 +27,15 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased dark bg-background`}
-        >
-
-          {children}
-        </body>
-      </html>
+      <ApolloProvider>
+        <html lang="en">
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased dark bg-background`}
+          >
+            {children}
+          </body>
+        </html>
+      </ApolloProvider>
     </ClerkProvider>
   );
 }
