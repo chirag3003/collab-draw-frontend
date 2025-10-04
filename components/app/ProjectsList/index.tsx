@@ -12,13 +12,13 @@ import {
 import { cn } from "@/lib/utils";
 import CreateProjectDialog from "./CreateProjectDialog";
 import ShareWorkspaceDialog from "./ShareWorkspaceDialog";
-
+import { useUser } from "@clerk/nextjs";
 
 interface Project {
   id: string;
   name: string;
   createdAt: string;
-  description?: string
+  description?: string;
   bannerImage?: string;
 }
 
@@ -50,6 +50,7 @@ export default function ProjectsList({
   onAddUser,
   onRemoveUser,
 }: WorkspaceListProps) {
+  const { user } = useUser();
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -92,7 +93,7 @@ export default function ProjectsList({
       <div className="header flex justify-between items-start mb-8">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            {details?.title || "Welcome back, Sophia"}
+            {details?.title || (user ? `Welcome back, ${user.firstName}` : "")}
           </h1>
           <p className="text-muted-foreground">
             {details?.description ||

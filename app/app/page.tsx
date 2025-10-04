@@ -38,7 +38,7 @@ export default function App() {
 
   useEffect(() => {
     if (user) {
-      getProjects({ variables: { owner: user.id } });
+      getProjects({ variables: { ID: user.id } });
     }
   }, [user, getProjects]);
 

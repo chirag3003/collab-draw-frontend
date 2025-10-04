@@ -73,8 +73,6 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     }
   }
 
-  console.log("initialData", initialData);
-
   const onUpdate = useCallback(
     debounceUpdate(
       500,
@@ -96,6 +94,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     appState: AppState,
   ) {
     onUpdate(elements, appState);
+  }
+
+  if(!loading && !projectData?.project) {
+    location.replace("/app")
   }
 
   return (
