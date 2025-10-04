@@ -13,19 +13,13 @@ import { cn } from "@/lib/utils";
 import CreateProjectDialog from "./CreateProjectDialog";
 import ShareWorkspaceDialog from "./ShareWorkspaceDialog";
 
-interface Collaborator {
-  id: string;
-  name: string;
-  avatar?: string;
-  initials: string;
-}
 
 interface Project {
   id: string;
-  title: string;
-  createdDate: string;
+  name: string;
+  createdAt: string;
+  description?: string
   bannerImage?: string;
-  collaborators: Collaborator[];
 }
 
 interface User {
@@ -42,7 +36,7 @@ interface WorkspaceListProps {
   details?: { title: string; description: string };
   personal: boolean;
   currentUsers?: User[];
-  onCreateProject?: (data: { title: string }) => void;
+  onCreateProject: (data: { title: string; description: string }) => void;
   onAddUser?: (email: string) => void;
   onRemoveUser?: (userId: string) => void;
 }
@@ -65,14 +59,12 @@ export default function ProjectsList({
     });
   };
 
-  const handleCreateProject = (data: { title: string }) => {
+  const handleCreateProject = (data: {
+    title: string;
+    description: string;
+  }) => {
     // Call the parent callback if provided
-    if (onCreateProject) {
-      onCreateProject(data);
-    } else {
-      // TODO: Implement project creation logic
-      console.log("Creating project:", data);
-    }
+    onCreateProject(data);
   };
 
   const handleAddUser = async (email: string) => {
@@ -129,13 +121,13 @@ export default function ProjectsList({
                 {project.bannerImage ? (
                   <img
                     src={"https://placehold.co/400x200"}
-                    alt={`${project.title} preview`}
+                    alt={`${project.name} preview`}
                     className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                     <div className="text-4xl font-bold text-muted-foreground/50">
-                      {project.title.charAt(0).toUpperCase()}
+                      {project.name.charAt(0).toUpperCase()}
                     </div>
                   </div>
                 )}
@@ -145,13 +137,13 @@ export default function ProjectsList({
             <CardContent className="p-4">
               {/* Project Title */}
               <h3 className="font-semibold text-foreground text-lg mb-2 line-clamp-2">
-                {project.title}
+                {project.name}
               </h3>
 
               {/* Created Date */}
               <div className="flex items-center text-sm text-muted-foreground mb-3">
                 <CalendarDays className="h-4 w-4 mr-2" />
-                Created {formatDate(project.createdDate)}
+                Created {formatDate(project.createdAt)}
               </div>
             </CardContent>
 

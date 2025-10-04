@@ -11,7 +11,9 @@ export function useWorkspace(id: string) {
             }
         }
     `;
-  return useQuery(QUERY, {
+  return useQuery<{
+    workspace: { id: string; name: string; description: string };
+  }>(QUERY, {
     variables: {
       ID: id,
     },
@@ -46,5 +48,7 @@ export function useCreateWorkspace() {
             )
         }
     `;
-  return useMutation(MUTATION);
+  return useMutation(MUTATION, {
+    refetchQueries: ["GetWorkspaceByID"],
+  });
 }

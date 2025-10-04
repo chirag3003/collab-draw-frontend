@@ -1,11 +1,18 @@
 "use client";
 
+import { useProjectByID, useUpdateProject } from "@/lib/hooks/project";
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type { AppState } from "@excalidraw/excalidraw/types";
 import dynamic from "next/dynamic";
-import { useCallback, useState } from "react";
+import { use, useCallback } from "react";
 
-function debounceUpdate(delay = 500) {
+function debounceUpdate(
+  delay = 500,
+  fn: (
+    elements: readonly OrderedExcalidrawElement[],
+    appState: AppState,
+  ) => void,
+) {
   let timeoutId: NodeJS.Timeout;
   return (
     elements: readonly OrderedExcalidrawElement[],
@@ -15,10 +22,7 @@ function debounceUpdate(delay = 500) {
       clearTimeout(timeoutId);
     }
     timeoutId = setTimeout(() => {
-      console.log({
-        elements,
-        appState,
-      });
+      fn(elements, appState);
     }, delay);
   };
 }
@@ -39,16 +43,53 @@ const Excalidraw = dynamic(
   },
 );
 
-export default function ProjectPage() {
-  const [data, setData] = useState<
-    | {
-        appState: AppState;
-        elements: OrderedExcalidrawElement[];
-      }
-    | undefined
-  >(undefined);
+interface ProjectPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
 
-  const onUpdate = useCallback(debounceUpdate(), []);
+export default function ProjectPage({ params }: ProjectPageProps) {
+  const { id } = use(params);
+  const { data: projectData, loading } = useProjectByID(id);
+  const [updateProject] = useUpdateProject();
+  let initialData:
+    | { appState: AppState; elements: OrderedExcalidrawElement[] }
+    | undefined;
+  if (projectData?.project) {
+    if (projectData.project.appState && projectData.project.elements) {
+      const parsedAppState = JSON.parse(projectData.project.appState);
+      const parsedElements = JSON.parse(projectData.project.elements);
+      
+      // Ensure collaborators is always an array
+      if (!parsedAppState.collaborators || !Array.isArray(parsedAppState.collaborators)) {
+        parsedAppState.collaborators = [];
+      }
+      
+      initialData = {
+        appState: parsedAppState,
+        elements: parsedElements,
+      };
+    }
+  }
+
+  console.log("initialData", initialData);
+
+  const onUpdate = useCallback(
+    debounceUpdate(
+      500,
+      (elements: readonly OrderedExcalidrawElement[], appState: AppState) => {
+        updateProject({
+          variables: {
+            ID: id,
+            appState: JSON.stringify(appState),
+            elements: JSON.stringify(elements),
+          },
+        });
+      },
+    ),
+    [],
+  );
 
   function onChange(
     elements: readonly OrderedExcalidrawElement[],
@@ -59,17 +100,23 @@ export default function ProjectPage() {
 
   return (
     <div className="w-full h-full">
-      <Excalidraw
-        theme="light"
-        isCollaborating={false}
-        initialData={
-          data && {
-            appState: data?.appState,
-            elements: data?.elements,
-          }
-        }
-        onChange={(elements, appState) => onChange(elements, appState)}
-      />
+      {!loading && (
+        <Excalidraw
+          isCollaborating={false}
+          initialData={initialData}
+          onChange={(elements, appState) => onChange(elements, appState)}
+          UIOptions={{
+            canvasActions: {
+              toggleTheme: true,
+              saveToActiveFile: false,
+              // loadScene: false,
+              export: {
+                saveFileToDisk: true,
+              },
+            },
+          }}
+        />
+      )}
     </div>
   );
 }

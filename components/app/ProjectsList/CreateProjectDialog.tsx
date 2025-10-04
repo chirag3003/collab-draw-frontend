@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface CreateProjectDialogProps {
-  onCreateProject?: (data: { title: string }) => void;
+  onCreateProject: (data: { title: string; description: string }) => void;
 }
 
 export default function CreateProjectDialog({
@@ -29,15 +29,11 @@ export default function CreateProjectDialog({
     if (projectTitle.trim()) {
       const projectData = {
         title: projectTitle.trim(),
+        description: "", // Description can be added later if needed
       };
 
       // Call the parent callback if provided
-      if (onCreateProject) {
-        onCreateProject(projectData);
-      } else {
-        // TODO: Implement project creation logic
-        console.log("Creating project:", projectData);
-      }
+      onCreateProject(projectData);
 
       // Reset form and close dialog
       setProjectTitle("");

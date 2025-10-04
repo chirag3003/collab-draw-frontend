@@ -1,7 +1,9 @@
 import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 
+let apolloClient: ApolloClient | null = null;
+
 const createApolloClient = () => {
-  return new ApolloClient({
+  apolloClient = new ApolloClient({
     link: new HttpLink({
       uri:
         process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
@@ -10,6 +12,13 @@ const createApolloClient = () => {
     }),
     cache: new InMemoryCache(),
   });
+  return apolloClient;
 };
 
 export default createApolloClient;
+export const getApolloClient = () => {
+  if (!apolloClient) {
+    apolloClient = createApolloClient();
+  }
+  return apolloClient;
+};
