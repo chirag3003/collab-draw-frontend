@@ -19,7 +19,9 @@ interface CreateProjectDialogProps {
   onCreateProject?: (data: { title: string }) => void;
 }
 
-export default function CreateProjectDialog({ onCreateProject }: CreateProjectDialogProps) {
+export default function CreateProjectDialog({
+  onCreateProject,
+}: CreateProjectDialogProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [projectTitle, setProjectTitle] = useState("");
 
@@ -36,7 +38,7 @@ export default function CreateProjectDialog({ onCreateProject }: CreateProjectDi
         // TODO: Implement project creation logic
         console.log("Creating project:", projectData);
       }
-      
+
       // Reset form and close dialog
       setProjectTitle("");
       setIsDialogOpen(false);
@@ -70,7 +72,9 @@ export default function CreateProjectDialog({ onCreateProject }: CreateProjectDi
           <DialogDescription>
             Create a new drawing project to start collaborating with your team.
             <br />
-            <span className="text-xs text-muted-foreground">Tip: Press Enter to create quickly</span>
+            <span className="text-xs text-muted-foreground">
+              Tip: Press Enter to create quickly
+            </span>
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -95,10 +99,7 @@ export default function CreateProjectDialog({ onCreateProject }: CreateProjectDi
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleCreateProject}
-            disabled={!projectTitle.trim()}
-          >
+          <Button onClick={handleCreateProject} disabled={!projectTitle.trim()}>
             <Plus className="h-4 w-4 mr-2" />
             Create Project
           </Button>

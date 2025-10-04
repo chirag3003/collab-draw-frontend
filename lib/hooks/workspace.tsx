@@ -3,14 +3,14 @@ import { useMutation, useQuery } from "@apollo/client/react";
 
 export function useWorkspace(id: string) {
   const QUERY = gql`
-    query GetWorkspace($ID:ID!){
-  workspace(id:$ID){
-    id
-    name
-    description
-  }
-}
-  `;
+        query GetWorkspace($ID:ID!){
+            workspace(id:$ID){
+                id
+                name
+                description
+            }
+        }
+    `;
   return useQuery(QUERY, {
     variables: {
       ID: id,
@@ -20,14 +20,14 @@ export function useWorkspace(id: string) {
 
 export function useWorkspaces(userID: string) {
   const QUERY = gql`
-    query GetWorkspaceByID($user:ID!){
-  workspacesByUser(userId:$user){
-    id
-    name
-    description
-    
-  }
-}
+        query GetWorkspaceByID($user:ID!){
+            workspacesByUser(userId:$user){
+                id
+                name
+                description
+
+            }
+        }
     `;
   return useQuery<{
     workspacesByUser: { id: string; name: string; description: string }[];
@@ -40,11 +40,11 @@ export function useWorkspaces(userID: string) {
 
 export function useCreateWorkspace() {
   const MUTATION = gql`
-    mutation CreateWorkspace($name: String!, $description: String!, $owner: ID!) {
-  createWorkspace(
-    input: { name: $name, description: $description, owner: $owner }
-  )
-}
+        mutation CreateWorkspace($name: String!, $description: String!, $owner: ID!) {
+            createWorkspace(
+                input: { name: $name, description: $description, owner: $owner }
+            )
+        }
     `;
   return useMutation(MUTATION);
 }

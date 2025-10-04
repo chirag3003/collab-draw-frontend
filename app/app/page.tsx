@@ -14,7 +14,7 @@ const QUERY = gql`query GetProjects{
 
 export default function App() {
   const { data, loading, error } = useQuery(QUERY);
-  console.log({data, loading, error});
+  console.log({ data, loading, error });
 
   // Sample projects data
   const sampleProjects = [

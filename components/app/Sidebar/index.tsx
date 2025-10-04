@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  FileText,
-  FolderOpen,
-  Search,
-  Users,
-} from "lucide-react";
+import { FileText, FolderOpen, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

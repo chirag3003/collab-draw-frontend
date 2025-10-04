@@ -21,10 +21,12 @@ export default function Home() {
           <UserButton />
         </SignedIn>
       </header>
-      
+
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-foreground">Welcome to Collab Draw</h1>
+          <h1 className="text-4xl font-bold text-foreground">
+            Welcome to Collab Draw
+          </h1>
           <p className="text-lg text-muted-foreground max-w-md">
             Create and collaborate on drawings with your team in real-time.
           </p>
