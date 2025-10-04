@@ -1,6 +1,5 @@
 import { gql } from "@apollo/client";
-import { useQuery } from "@apollo/client/react";
-import { useUser } from "@clerk/nextjs";
+import { useMutation, useQuery } from "@apollo/client/react";
 
 export function useWorkspace(id: string) {
   const QUERY = gql`
@@ -30,9 +29,22 @@ export function useWorkspaces(userID: string) {
   }
 }
     `;
-  return useQuery(QUERY, {
+  return useQuery<{
+    workspacesByUser: { id: string; name: string; description: string }[];
+  }>(QUERY, {
     variables: {
       user: userID,
     },
   });
+}
+
+export function useCreateWorkspace() {
+  const MUTATION = gql`
+    mutation CreateWorkspace($name: String!, $description: String!, $owner: ID!) {
+  createWorkspace(
+    input: { name: $name, description: $description, owner: $owner }
+  )
+}
+    `;
+  return useMutation(MUTATION);
 }

@@ -11,7 +11,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CreateWorkspaceDialog from "./CreateWorkspaceDialog";
-import { useWorkspaces } from "@/lib/hooks/workspace";
+import { useCreateWorkspace, useWorkspaces } from "@/lib/hooks/workspace";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 interface SidebarProps {
   userID: string;
@@ -19,7 +21,9 @@ interface SidebarProps {
 
 export default function Sidebar({ userID }: SidebarProps) {
   const { data: workspaces } = useWorkspaces(userID);
+  const pathname = usePathname();
   console.log("Workspaces:", workspaces);
+  const [createWorkspace] = useCreateWorkspace();
   // Sample workspace data
   const workspace = [
     { id: 1, title: "Dashboard Redesign", isActive: true },
@@ -30,8 +34,18 @@ export default function Sidebar({ userID }: SidebarProps) {
     { id: 6, title: "E-commerce Platform", isActive: false },
   ];
 
-  const handleCreateWorkspace = (data: { title: string; description: string }) => {
+  const handleCreateWorkspace = async (data: {
+    title: string;
+    description: string;
+  }) => {
     // TODO: Implement workspace creation logic
+    await createWorkspace({
+      variables: {
+        name: data.title,
+        description: data.description,
+        owner: userID,
+      },
+    });
     console.log("Creating workspace:", data);
     // Here you would typically make an API call to create the workspace
   };
@@ -96,30 +110,26 @@ export default function Sidebar({ userID }: SidebarProps) {
             RECENT WORKSPACE
           </h3>
           <div className="flex-1 overflow-y-auto space-y-1 pr-2">
-            {workspace.map((project) => (
-              <div
-                key={project.id}
-                className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                  project.isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"
-                }`}
-              >
-                <div className="flex items-center space-x-3 flex-1 min-w-0">
-                  <FileText className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-sm font-medium truncate">
-                    {project.title}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <MoreHorizontal className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
+            {workspaces
+              ? workspaces.workspacesByUser.map((project) => (
+                  <Link
+                    href={`/app/${project.id}`}
+                    key={project.id}
+                    className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                      pathname.endsWith(project.id)
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <FileText className="h-4 w-4 flex-shrink-0" />
+                      <span className="text-sm font-medium truncate">
+                        {project.name}
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              : null}
           </div>
         </div>
       </div>

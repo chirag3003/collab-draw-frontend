@@ -107,17 +107,17 @@ export default function ProjectsList({
               "Continue working on your projects or start something new"}
           </p>
         </div>
-        {!personal && (
-          <div className="controls flex space-x-3">
+        <div className="controls flex space-x-3">
+          {!personal && (
             <ShareWorkspaceDialog
               currentUsers={currentUsers}
               onAddUser={handleAddUser}
               onRemoveUser={handleRemoveUser}
               workspaceTitle={details?.title}
             />
-            <CreateProjectDialog onCreateProject={handleCreateProject} />
-          </div>
-        )}
+          )}
+          <CreateProjectDialog onCreateProject={handleCreateProject} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
