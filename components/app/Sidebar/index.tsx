@@ -1,6 +1,7 @@
 "use client";
 
-import { FileText, FolderOpen, Search, Users } from "lucide-react";
+import { SignOutButton, useUser } from "@clerk/nextjs";
+import { FileText, FolderOpen, LogOut, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,6 +16,7 @@ interface SidebarProps {
 
 export default function Sidebar({ userID }: SidebarProps) {
   const { data: workspaces } = useWorkspaces(userID);
+  const { user } = useUser();
   const pathname = usePathname();
   const [createWorkspace] = useCreateWorkspace();
 
@@ -40,18 +42,25 @@ export default function Sidebar({ userID }: SidebarProps) {
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center space-x-3 mb-4">
           <Avatar className="h-12 w-12">
-            <AvatarImage src="/placeholder-avatar.jpg" alt="Sophia Carter" />
+            <AvatarImage src={user?.imageUrl} alt="Sophia Carter" />
             <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground font-semibold text-lg">
-              SC
+              CB
             </AvatarFallback>
           </Avatar>
           <div>
             <h2 className="font-semibold text-sidebar-foreground text-lg">
-              Sophia Carter
+              {user?.fullName}
             </h2>
             <p className="text-sm text-sidebar-foreground/70">
-              Product Designer
+              {user?.emailAddresses[0]?.emailAddress}
             </p>
+          </div>
+          <div className="ml-auto">
+            <SignOutButton>
+              <Button variant="ghost" className="px-3 py-1 cursor-pointer hover:bg-red-100 hover:text-red-600 .dark:hover:bg-red-900/50 dark:hover:bg-red-50">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </SignOutButton>
           </div>
         </div>
 
