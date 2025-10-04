@@ -3,17 +3,16 @@
 import {
   FileText,
   FolderOpen,
-  MoreHorizontal,
   Search,
   Users,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import CreateWorkspaceDialog from "./CreateWorkspaceDialog";
 import { useCreateWorkspace, useWorkspaces } from "@/lib/hooks/workspace";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import CreateWorkspaceDialog from "./CreateWorkspaceDialog";
 
 interface SidebarProps {
   userID: string;
@@ -22,17 +21,7 @@ interface SidebarProps {
 export default function Sidebar({ userID }: SidebarProps) {
   const { data: workspaces } = useWorkspaces(userID);
   const pathname = usePathname();
-  console.log("Workspaces:", workspaces);
   const [createWorkspace] = useCreateWorkspace();
-  // Sample workspace data
-  const workspace = [
-    { id: 1, title: "Dashboard Redesign", isActive: true },
-    { id: 2, title: "Mobile App Wireframes", isActive: false },
-    { id: 3, title: "Logo Design System", isActive: false },
-    { id: 4, title: "User Research Study", isActive: false },
-    { id: 5, title: "Marketing Website", isActive: false },
-    { id: 6, title: "E-commerce Platform", isActive: false },
-  ];
 
   const handleCreateWorkspace = async (data: {
     title: string;
