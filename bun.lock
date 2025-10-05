@@ -23,6 +23,7 @@
         "date-fns": "^4.1.0",
         "embla-carousel-react": "^8.6.0",
         "graphql": "^16.11.0",
+        "graphql-ws": "^6.0.6",
         "input-otp": "^1.4.2",
         "lucide-react": "^0.544.0",
         "next": "15.5.4",
@@ -541,6 +542,8 @@
     "graphql": ["graphql@16.11.0", "", {}, "sha512-mS1lbMsxgQj6hge1XZ6p7GPhbrtFwUFYi3wRzXAC/FmYnyXMTvvI3td3rjmQ2u8ewXueaSvRPWaEcgVVOT9Jnw=="],
 
     "graphql-tag": ["graphql-tag@2.12.6", "", { "dependencies": { "tslib": "^2.1.0" }, "peerDependencies": { "graphql": "^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0" } }, "sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg=="],
+
+    "graphql-ws": ["graphql-ws@6.0.6", "", { "peerDependencies": { "@fastify/websocket": "^10 || ^11", "crossws": "~0.3", "graphql": "^15.10.1 || ^16", "uWebSockets.js": "^20", "ws": "^8" }, "optionalPeers": ["@fastify/websocket", "crossws", "uWebSockets.js", "ws"] }, "sha512-zgfER9s+ftkGKUZgc0xbx8T7/HMO4AV5/YuYiFc+AtgcO5T0v8AxYYNQ+ltzuzDZgNkYJaFspm5MMYLjQzrkmw=="],
 
     "hachure-fill": ["hachure-fill@0.5.2", "", {}, "sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg=="],
 

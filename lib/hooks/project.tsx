@@ -121,7 +121,10 @@ export const useProjectSubscription = (projectID: string) => {
     };
   }>(QUERY, {
     variables: { ID: projectID },
-    // pollInterval: 2000,
-    // fetchPolicy: "network-only",
+    fetchPolicy: "network-only",
+    shouldResubscribe: true,
+    onError: (error) => {
+      console.error("Subscription error:", error);
+    },
   });
 };

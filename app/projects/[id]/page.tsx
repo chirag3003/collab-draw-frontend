@@ -1,14 +1,13 @@
 "use client";
 
-import {
-  useProjectByID,
-  useProjectSubscription,
-  useUpdateProject,
-} from "@/lib/hooks/project";
+import { useProjectSubscription, useUpdateProject } from "@/lib/hooks/project";
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
-import type { AppState } from "@excalidraw/excalidraw/types";
+import type {
+  AppState,
+  ExcalidrawImperativeAPI,
+} from "@excalidraw/excalidraw/types";
 import dynamic from "next/dynamic";
-import { use, useCallback } from "react";
+import { use, useCallback, useEffect, useRef } from "react";
 
 function debounceUpdate(
   delay = 500,
@@ -58,6 +57,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   // const { data: projectData, loading } = useProjectByID(id);
   const { data: projectData, loading } = useProjectSubscription(id);
   const [updateProject] = useUpdateProject();
+  const excalidrawAPIRef = useRef<ExcalidrawImperativeAPI | null>(null);
+  const isUpdatingFromSubscription = useRef(false);
+
   let initialData:
     | { appState: AppState; elements: OrderedExcalidrawElement[] }
     | undefined;
@@ -81,9 +83,54 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     }
   }
 
+  // Update Excalidraw scene when subscription data changes
+  useEffect(() => {
+    console.log(
+      "updates",
+      projectData?.project?.appState,
+      projectData?.project?.elements,
+    );
+    if (
+      excalidrawAPIRef.current &&
+      projectData?.project?.appState &&
+      projectData?.project?.elements &&
+      !isUpdatingFromSubscription.current
+    ) {
+      try {
+        const parsedAppState = JSON.parse(projectData.project.appState);
+        const parsedElements = JSON.parse(projectData.project.elements);
+
+        // Ensure collaborators is always an array
+        if (
+          !parsedAppState.collaborators ||
+          !Array.isArray(parsedAppState.collaborators)
+        ) {
+          parsedAppState.collaborators = [];
+        }
+
+        // Set flag to prevent onChange from triggering during this update
+        isUpdatingFromSubscription.current = true;
+
+        // Update the scene with new data
+        excalidrawAPIRef.current.updateScene({
+          elements: parsedElements,
+          appState: parsedAppState,
+        });
+
+        // Reset flag after a brief delay
+        setTimeout(() => {
+          isUpdatingFromSubscription.current = false;
+        }, 100);
+      } catch (error) {
+        console.error("Error updating Excalidraw scene:", error);
+        isUpdatingFromSubscription.current = false;
+      }
+    }
+  }, [projectData?.project?.appState, projectData?.project?.elements]);
+
   const onUpdate = useCallback(
     debounceUpdate(
-      500,
+      100,
       (elements: readonly OrderedExcalidrawElement[], appState: AppState) => {
         updateProject({
           variables: {
@@ -101,7 +148,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     elements: readonly OrderedExcalidrawElement[],
     appState: AppState,
   ) {
-    onUpdate(elements, appState);
+    // Only trigger updates if it's not from a subscription update
+    if (!isUpdatingFromSubscription.current) {
+      onUpdate(elements, appState);
+    }
   }
 
   if (!loading && !projectData?.project) {
@@ -112,6 +162,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     <div className="w-full h-full">
       {!loading && (
         <Excalidraw
+          excalidrawAPI={(api) => {
+            excalidrawAPIRef.current = api;
+          }}
           isCollaborating={true}
           initialData={initialData}
           onChange={(elements, appState) => onChange(elements, appState)}
