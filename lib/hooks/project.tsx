@@ -1,5 +1,10 @@
 import { gql } from "@apollo/client";
-import { useLazyQuery, useMutation, useQuery } from "@apollo/client/react";
+import {
+  useLazyQuery,
+  useMutation,
+  useQuery,
+  useSubscription,
+} from "@apollo/client/react";
 
 export const useProjectByID = (projectID: string) => {
   const QUERY = gql`
@@ -98,4 +103,25 @@ export const useUpdateProject = () => {
 }
     `;
   return useMutation(QUERY);
+};
+
+export const useProjectSubscription = (projectID: string) => {
+  const QUERY = gql`
+  subscription GetProjectUpdates($ID:ID!){
+  project(id:$ID){
+    appState
+    elements
+  }
+}
+  `;
+  return useSubscription<{
+    project: {
+      appState: string;
+      elements: string;
+    };
+  }>(QUERY, {
+    variables: { ID: projectID },
+    // pollInterval: 2000,
+    // fetchPolicy: "network-only",
+  });
 };

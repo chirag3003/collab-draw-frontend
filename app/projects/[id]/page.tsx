@@ -1,6 +1,10 @@
 "use client";
 
-import { useProjectByID, useUpdateProject } from "@/lib/hooks/project";
+import {
+  useProjectByID,
+  useProjectSubscription,
+  useUpdateProject,
+} from "@/lib/hooks/project";
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type { AppState } from "@excalidraw/excalidraw/types";
 import dynamic from "next/dynamic";
@@ -51,7 +55,8 @@ interface ProjectPageProps {
 
 export default function ProjectPage({ params }: ProjectPageProps) {
   const { id } = use(params);
-  const { data: projectData, loading } = useProjectByID(id);
+  // const { data: projectData, loading } = useProjectByID(id);
+  const { data: projectData, loading } = useProjectSubscription(id);
   const [updateProject] = useUpdateProject();
   let initialData:
     | { appState: AppState; elements: OrderedExcalidrawElement[] }
@@ -60,12 +65,15 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     if (projectData.project.appState && projectData.project.elements) {
       const parsedAppState = JSON.parse(projectData.project.appState);
       const parsedElements = JSON.parse(projectData.project.elements);
-      
+
       // Ensure collaborators is always an array
-      if (!parsedAppState.collaborators || !Array.isArray(parsedAppState.collaborators)) {
+      if (
+        !parsedAppState.collaborators ||
+        !Array.isArray(parsedAppState.collaborators)
+      ) {
         parsedAppState.collaborators = [];
       }
-      
+
       initialData = {
         appState: parsedAppState,
         elements: parsedElements,
@@ -96,8 +104,8 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     onUpdate(elements, appState);
   }
 
-  if(!loading && !projectData?.project) {
-    location.replace("/app")
+  if (!loading && !projectData?.project) {
+    location.replace("/app");
   }
 
   return (
