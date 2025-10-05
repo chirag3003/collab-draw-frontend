@@ -48,39 +48,6 @@ export default function Sidebar({ userID }: SidebarProps) {
 
   return (
     <div className="w-80 h-screen border-r border-sidebar-border flex flex-col">
-      {/* User Profile Section */}
-      <div className="p-6 border-b border-sidebar-border">
-        <div className="flex items-center space-x-3 mb-4">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={user?.imageUrl} alt="Sophia Carter" />
-            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground font-semibold text-lg">
-              CB
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="font-semibold text-sidebar-foreground text-lg">
-              {user?.fullName}
-            </h2>
-            <p className="text-sm text-sidebar-foreground/70">
-              {user?.emailAddresses[0]?.emailAddress}
-            </p>
-          </div>
-          <div className="ml-auto">
-            <SignOutButton>
-              <Button
-                variant="ghost"
-                className="px-3 py-1 cursor-pointer hover:bg-red-100 hover:text-red-600 .dark:hover:bg-red-900/50 dark:hover:bg-red-50"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </SignOutButton>
-          </div>
-        </div>
-
-        {/* New workspace Button */}
-        <CreateWorkspaceDialog onCreateWorkspace={handleCreateWorkspace} />
-      </div>
-
       {/* Navigation Section */}
       <div className="p-6 space-y-4 flex-1 overflow-hidden flex flex-col">
         {/* My Workspace */}
@@ -140,6 +107,38 @@ export default function Sidebar({ userID }: SidebarProps) {
               : null}
           </div>
         </div>
+      </div>
+      {/* User Profile Section */}
+      <div className="p-6 border-t max-w-full">
+        <div className="flex items-center gap-3 mb-4 max-w-full overflow-hidden">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={user?.imageUrl} alt="Sophia Carter" />
+            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground font-semibold text-lg">
+              CB
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 overflow-hidden">
+            <h2 className="font-semibold text-sidebar-foreground text-lg">
+              {user?.fullName}
+            </h2>
+            <p className="text-sm text-sidebar-foreground/70 w-full truncate">
+              {user?.emailAddresses[0]?.emailAddress}
+            </p>
+          </div>
+          <div className="">
+            <SignOutButton>
+              <Button
+                variant="ghost"
+                className="px-3 py-1 cursor-pointer hover:bg-red-100 hover:text-red-600 .dark:hover:bg-red-900/50 dark:hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </SignOutButton>
+          </div>
+        </div>
+
+        {/* New workspace Button */}
+        <CreateWorkspaceDialog onCreateWorkspace={handleCreateWorkspace} />
       </div>
     </div>
   );
