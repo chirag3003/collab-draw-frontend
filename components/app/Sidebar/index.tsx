@@ -1,11 +1,19 @@
 "use client";
 
-import { SignOutButton, useUser } from "@clerk/nextjs";
-import { FileText, FolderOpen, LogOut, Search, Users } from "lucide-react";
+import { SignOutButton, useClerk, useUser } from "@clerk/nextjs";
+import {
+  FileText,
+  FolderOpen,
+  LogOut,
+  Search,
+  Settings,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   useCreateWorkspace,
@@ -13,13 +21,13 @@ import {
   useWorkspaces,
 } from "@/lib/hooks/workspace";
 import CreateWorkspaceDialog from "./CreateWorkspaceDialog";
-import { useState } from "react";
 
 interface SidebarProps {
   userID: string;
 }
 
 export default function Sidebar({ userID }: SidebarProps) {
+  const { openUserProfile } = useClerk();
   const { data: workspaces } = useWorkspaces(userID);
   const { data: sharedWorkspaces } = useSharedWorkspaces(userID);
   const { user } = useUser();
@@ -51,18 +59,21 @@ export default function Sidebar({ userID }: SidebarProps) {
       {/* Navigation Section */}
       <div className="p-6 space-y-4 flex-1 overflow-hidden flex flex-col">
         {/* My Workspace */}
+        <Link className={buttonVariants({ variant: "outline" })} href={"/app"}>
+          Personal
+        </Link>
         <Button
-          variant={sharedWs ? "secondary" : "default"}
+          variant={sharedWs || pathname === "/app" ? "secondary" : "default"}
           className="w-full justify-start h-11 rounded-lg font-medium"
           onClick={() => setSharedWs(false)}
         >
           <FolderOpen className="h-4 w-4 mr-3" />
-          My Workspace
+          My Workspaces
         </Button>
 
         {/* Shared with Me */}
         <Button
-          variant={sharedWs ? "default" : "secondary"}
+          variant={sharedWs && pathname !== "/app" ? "default" : "secondary"}
           className="w-full justify-start h-11 rounded-lg font-medium"
           onClick={() => setSharedWs(true)}
         >
@@ -138,7 +149,16 @@ export default function Sidebar({ userID }: SidebarProps) {
         </div>
 
         {/* New workspace Button */}
-        <CreateWorkspaceDialog onCreateWorkspace={handleCreateWorkspace} />
+        <div className="flex gap-2 w-full overflow-hidden">
+          <CreateWorkspaceDialog onCreateWorkspace={handleCreateWorkspace} />
+          <Button
+            className="h-11 w-11"
+            onClick={() => openUserProfile()}
+            variant="ghost"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
