@@ -68,6 +68,7 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
               title: workspaceData.workspace.name,
               description: workspaceData.workspace.description,
             }}
+            owned={workspaceData.workspace.members.owner.id === user?.id}
             onAddUser={handleAddUser}
             onRemoveUser={handleRemoveUser}
           />

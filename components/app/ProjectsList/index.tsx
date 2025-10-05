@@ -26,9 +26,13 @@ interface WorkspaceListProps {
   projects: Project[];
   details?: { title: string; description: string };
   personal: boolean;
-  onCreateProject: (data: { title: string; description: string }) => void;
-  onAddUser?: (email: string) => void;
-  onRemoveUser?: (userId: string) => void;
+  onCreateProject: (data: {
+    title: string;
+    description: string;
+  }) => Promise<void>;
+  onAddUser?: (email: string) => Promise<void>;
+  onRemoveUser?: (userId: string) => Promise<void>;
+  owned?: boolean;
   members?: {
     owner: {
       id: string;
@@ -53,6 +57,7 @@ export default function ProjectsList({
   onAddUser,
   onRemoveUser,
   members,
+  owned = true,
 }: WorkspaceListProps) {
   const { user } = useUser();
   const formatDate = (dateString: string) => {
@@ -64,31 +69,23 @@ export default function ProjectsList({
     });
   };
 
-  const handleCreateProject = (data: {
+  const handleCreateProject = async (data: {
     title: string;
     description: string;
   }) => {
     // Call the parent callback if provided
-    onCreateProject(data);
+    await onCreateProject(data);
   };
 
   const handleAddUser = async (email: string) => {
-    // Call the parent callback if provided
     if (onAddUser) {
       await onAddUser(email);
-    } else {
-      // TODO: Implement user invitation logic
-      console.log("Inviting user:", email);
     }
   };
 
-  const handleRemoveUser = (userId: string) => {
-    // Call the parent callback if provided
+  const handleRemoveUser = async (userId: string) => {
     if (onRemoveUser) {
-      onRemoveUser(userId);
-    } else {
-      // TODO: Implement user removal logic
-      console.log("Removing user:", userId);
+      await onRemoveUser(userId);
     }
   };
 
@@ -113,7 +110,9 @@ export default function ProjectsList({
               workspaceTitle={details?.title}
             />
           )}
-          <CreateProjectDialog onCreateProject={handleCreateProject} />
+          {owned && (
+            <CreateProjectDialog onCreateProject={handleCreateProject} />
+          )}
         </div>
       </div>
 

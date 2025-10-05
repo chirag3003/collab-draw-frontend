@@ -59,7 +59,6 @@ export function useWorkspaces(userID: string) {
                 id
                 name
                 description
-
             }
         }
     `;
@@ -68,6 +67,25 @@ export function useWorkspaces(userID: string) {
   }>(QUERY, {
     variables: {
       user: userID,
+    },
+  });
+}
+
+export function useSharedWorkspaces(userID: string) {
+  const QUERY = gql`
+  query GetSharedWorkspace($ID:ID!){
+  sharedWorkspacesByUser(userId:$ID){
+    id
+    name
+    description
+  }
+}
+`;
+  return useQuery<{
+    sharedWorkspacesByUser: { id: string; name: string; description: string }[];
+  }>(QUERY, {
+    variables: {
+      ID: userID,
     },
   });
 }
