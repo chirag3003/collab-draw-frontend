@@ -4,15 +4,47 @@ import { useMutation, useQuery } from "@apollo/client/react";
 export function useWorkspace(id: string) {
   const QUERY = gql`
         query GetWorkspace($ID:ID!){
-            workspace(id:$ID){
-                id
-                name
-                description
-            }
-        }
+  workspace(id:$ID){
+    id
+    name
+    description
+    members{
+      owner{
+        id
+        imageURL
+        fullName
+        email
+      }
+      members{
+        id
+        fullName
+        email
+        imageURL
+      }
+    }
+  }
+}
     `;
   return useQuery<{
-    workspace: { id: string; name: string; description: string };
+    workspace: {
+      id: string;
+      name: string;
+      description: string;
+      members: {
+        owner: {
+          id: string;
+          imageURL: string;
+          fullName: string;
+          email: string;
+        };
+        members: {
+          id: string;
+          fullName: string;
+          email: string;
+          imageURL: string;
+        }[];
+      };
+    };
   }>(QUERY, {
     variables: {
       ID: id,
@@ -50,5 +82,27 @@ export function useCreateWorkspace() {
     `;
   return useMutation(MUTATION, {
     refetchQueries: ["GetWorkspaceByID"],
+  });
+}
+
+export function useAddUserToWorkspace() {
+  const QUERY = gql`
+    mutation AddUserToWorkspace($ID:ID!, $email:String!){
+  addMemberToWorkspace(workspaceId:$ID,email:$email)
+}
+  `;
+  return useMutation(QUERY, {
+    refetchQueries: ["GetWorkspace"],
+  });
+}
+
+export function useRemoveUserFromWorkspace() {
+  const QUERY = gql`
+mutation RemoveUserFromWorkspace($ID:ID!, $userID:ID!){
+  removeMemberFromWorkspace(workspaceId:$ID, userId:$userID)
+}
+  `;
+  return useMutation(QUERY, {
+    refetchQueries: ["GetWorkspace"],
   });
 }

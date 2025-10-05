@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { Crown, Mail, Share2, UserPlus, X } from "lucide-react";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,28 +17,37 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  initials: string;
-  role: "owner" | "editor" | "viewer";
-}
-
 interface ShareWorkspaceDialogProps {
-  currentUsers?: User[];
   onAddUser?: (email: string) => void;
   onRemoveUser?: (userId: string) => void;
   workspaceTitle?: string;
+  members?: {
+    owner: {
+      id: string;
+      fullName: string;
+      email: string;
+      imageURL?: string;
+    };
+    members: {
+      id: string;
+      fullName: string;
+      email: string;
+      imageURL?: string;
+    }[];
+  };
 }
 
 export default function ShareWorkspaceDialog({
-  currentUsers = [],
   onAddUser,
   onRemoveUser,
   workspaceTitle = "workspace",
+  members = {
+    owner: { id: "", fullName: "", email: "", imageURL: "" },
+    members: [],
+  },
 }: ShareWorkspaceDialogProps) {
+  const { user: currentUser } = useUser();
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState("");
   const [isInviting, setIsInviting] = useState(false);
@@ -138,28 +148,58 @@ export default function ShareWorkspaceDialog({
 
           {/* Current Users Section */}
           <div className="space-y-3">
-            <Label>People with access ({currentUsers.length})</Label>
+            <Label>People with access ({members.members.length + 1})</Label>
+
+            {/* Owner */}
             <div className="space-y-2 max-h-60 overflow-y-auto">
-              {currentUsers.map((user) => (
+              <div className="flex items-center justify-between p-3 border border-border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={members.owner.imageURL}
+                      alt={members.owner.fullName}
+                    />
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {/* {user.initials} */}
+                      CB
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {members.owner.fullName}
+                      </p>
+                      <Crown className="h-3 w-3 text-yellow-500" />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Mail className="h-3 w-3 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground truncate">
+                        {members.owner.email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Invited Members */}
+              {members.members.map((user) => (
                 <div
                   key={user.id}
                   className="flex items-center justify-between p-3 border border-border rounded-lg"
                 >
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarImage src={user.imageURL} alt={user.fullName} />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {user.initials}
+                        {/* {user.initials} */}
+                        CB
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <p className="text-sm font-medium text-foreground truncate">
-                          {user.name}
+                          {user.fullName}
                         </p>
-                        {user.role === "owner" && (
-                          <Crown className="h-3 w-3 text-yellow-500" />
-                        )}
                       </div>
                       <div className="flex items-center space-x-2">
                         <Mail className="h-3 w-3 text-muted-foreground" />
@@ -170,7 +210,7 @@ export default function ShareWorkspaceDialog({
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {user.role !== "owner" && (
+                    {currentUser?.id === members.owner.id && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -184,7 +224,7 @@ export default function ShareWorkspaceDialog({
                 </div>
               ))}
 
-              {currentUsers.length === 0 && (
+              {members.members.length === 0 && (
                 <div className="text-center py-6 text-muted-foreground">
                   <Share2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-sm">No users have been invited yet</p>

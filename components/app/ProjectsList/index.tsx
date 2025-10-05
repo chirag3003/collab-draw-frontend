@@ -22,33 +22,37 @@ interface Project {
   bannerImage?: string;
 }
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  initials: string;
-  role: "owner" | "editor" | "viewer";
-}
-
 interface WorkspaceListProps {
   projects: Project[];
   details?: { title: string; description: string };
   personal: boolean;
-  currentUsers?: User[];
   onCreateProject: (data: { title: string; description: string }) => void;
   onAddUser?: (email: string) => void;
   onRemoveUser?: (userId: string) => void;
+  members?: {
+    owner: {
+      id: string;
+      fullName: string;
+      email: string;
+      imageURL?: string;
+    };
+    members: {
+      id: string;
+      fullName: string;
+      email: string;
+      imageURL?: string;
+    }[];
+  };
 }
 
 export default function ProjectsList({
   projects,
   details,
   personal = false,
-  currentUsers = [],
   onCreateProject,
   onAddUser,
   onRemoveUser,
+  members,
 }: WorkspaceListProps) {
   const { user } = useUser();
   const formatDate = (dateString: string) => {
@@ -103,7 +107,7 @@ export default function ProjectsList({
         <div className="controls flex space-x-3">
           {!personal && (
             <ShareWorkspaceDialog
-              currentUsers={currentUsers}
+              members={members}
               onAddUser={handleAddUser}
               onRemoveUser={handleRemoveUser}
               workspaceTitle={details?.title}

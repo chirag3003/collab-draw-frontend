@@ -1,9 +1,9 @@
 "use client";
 
-import ProjectsList from "@/components/app/ProjectsList";
-import { useCreateProject, useProjectByOwner } from "@/lib/hooks/project";
 import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
+import ProjectsList from "@/components/app/ProjectsList";
+import { useCreateProject, useProjectByOwner } from "@/lib/hooks/project";
 
 export default function App() {
   const [getProjects, { data }] = useProjectByOwner();
@@ -24,18 +24,6 @@ export default function App() {
     });
   };
 
-  const handleAddUser = async (email: string) => {
-    // TODO: Implement user invitation logic
-    console.log("Inviting user:", email);
-    // Here you would typically make an API call to invite the user
-  };
-
-  const handleRemoveUser = (userId: string) => {
-    // TODO: Implement user removal logic
-    console.log("Removing user:", userId);
-    // Here you would typically make an API call to remove the user
-  };
-
   useEffect(() => {
     if (user) {
       getProjects({ variables: { ID: user.id } });
@@ -48,11 +36,10 @@ export default function App() {
         {data && (
           <ProjectsList
             projects={data.projectsByUser}
-            currentUsers={[]}
             onCreateProject={handleCreateProject}
             personal={true}
-            onAddUser={handleAddUser}
-            onRemoveUser={handleRemoveUser}
+            // onAddUser={handleAddUser}
+            // onRemoveUser={handleRemoveUser}
           />
         )}
       </div>

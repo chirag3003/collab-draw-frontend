@@ -1,10 +1,14 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { use } from "react";
 import ProjectsList from "@/components/app/ProjectsList";
 import { useCreateProject, useProjectsByWorkspace } from "@/lib/hooks/project";
-import { useWorkspace } from "@/lib/hooks/workspace";
-import { useUser } from "@clerk/nextjs";
+import {
+  useAddUserToWorkspace,
+  useRemoveUserFromWorkspace,
+  useWorkspace,
+} from "@/lib/hooks/workspace";
 
 interface WorkspaceAppProps {
   params: Promise<{ id: string }>;
@@ -15,33 +19,8 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
   const { data: workspaceData, loading } = useWorkspace(id);
   const { data: projectsData } = useProjectsByWorkspace(id);
   const [createProject] = useCreateProject();
-
-  // Sample users data
-  const sampleUsers = [
-    {
-      id: "1",
-      name: "Sophia Carter",
-      email: "sophia.carter@company.com",
-      initials: "SC",
-      avatar: "/avatar-1.jpg",
-      role: "owner" as const,
-    },
-    {
-      id: "2",
-      name: "John Doe",
-      email: "john.doe@company.com",
-      initials: "JD",
-      avatar: "/avatar-2.jpg",
-      role: "editor" as const,
-    },
-    {
-      id: "3",
-      name: "Jane Smith",
-      email: "jane.smith@company.com",
-      initials: "JS",
-      role: "viewer" as const,
-    },
-  ];
+  const [addUser] = useAddUserToWorkspace();
+  const [removeUser] = useRemoveUserFromWorkspace();
 
   const handleCreateProject = async (data: {
     title: string;
@@ -59,15 +38,21 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
   };
 
   const handleAddUser = async (email: string) => {
-    // TODO: Implement user invitation logic
-    console.log("Inviting user:", email);
-    // Here you would typically make an API call to invite the user
+    await addUser({
+      variables: {
+        ID: id,
+        email,
+      },
+    });
   };
 
-  const handleRemoveUser = (userId: string) => {
-    // TODO: Implement user removal logic
-    console.log("Removing user:", userId);
-    // Here you would typically make an API call to remove the user
+  const handleRemoveUser = async (userId: string) => {
+    await removeUser({
+      variables: {
+        ID: id,
+        userID: userId,
+      },
+    });
   };
 
   return (
@@ -76,7 +61,7 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
         {!loading && workspaceData && projectsData && (
           <ProjectsList
             projects={projectsData.projectsByWorkspace}
-            currentUsers={sampleUsers}
+            members={workspaceData.workspace.members}
             onCreateProject={handleCreateProject}
             personal={false}
             details={{
