@@ -104,7 +104,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     <div className="w-full h-full">
       {!loading && (
         <Excalidraw
-          isCollaborating={false}
+          isCollaborating={true}
           initialData={initialData}
           onChange={(elements, appState) => onChange(elements, appState)}
           UIOptions={{

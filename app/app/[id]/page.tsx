@@ -55,10 +55,14 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
     });
   };
 
+  if(!loading && !workspaceData?.workspace) {
+    location.replace("/app")
+  }
+
   return (
     <div className="h-full p-8">
       <div className="max-w-7xl mx-auto">
-        {!loading && workspaceData && projectsData && (
+        {!loading && workspaceData && workspaceData.workspace && projectsData && (
           <ProjectsList
             projects={projectsData.projectsByWorkspace}
             members={workspaceData.workspace.members}
