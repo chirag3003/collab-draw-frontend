@@ -33,6 +33,7 @@ export default function Project({ projectID }: ProjectProps) {
     useState<ExcalidrawImperativeAPI | null>(null);
   const excalidrawAPIUpdateRef = useRef<boolean>(false);
   const [initialSet, setInitialSet] = useState<boolean>(false);
+  const excalidrawElementsRef = useRef<string>(null);
 
   const { data: subscriptionData, loading: subscriptionLoading } =
     useProjectSubscription(projectID, !excalidrawApi);
@@ -47,12 +48,12 @@ export default function Project({ projectID }: ProjectProps) {
             console.log("Initial set not done yet, skipping update.");
             return;
           }
-          if (JSON.stringify(elements) === subscriptionData?.project.elements) {
+          const elementsString = JSON.stringify(elements);
+          if (elementsString === excalidrawElementsRef.current) {
             console.log("Elements match subscription data, skipping update.");
             return;
           }
-          console.log(subscriptionData?.project.elements);
-          console.log("Debounced update call");
+          excalidrawElementsRef.current = elementsString;
           getApolloClient().mutate({
             mutation: gql`
               mutation updateProject($ID:ID!, $elements:String!, $socketID:ID!) {
@@ -65,7 +66,7 @@ export default function Project({ projectID }: ProjectProps) {
             `,
             variables: {
               ID: projectID,
-              elements: JSON.stringify(elements),
+              elements: elementsString,
               socketID: subscriptionData?.project.socketID,
             },
           });
@@ -78,7 +79,6 @@ export default function Project({ projectID }: ProjectProps) {
     [
       initialSet,
       subscriptionData?.project.socketID,
-      subscriptionData?.project.elements,
       projectID,
       // updateProject,
     ],
@@ -92,6 +92,7 @@ export default function Project({ projectID }: ProjectProps) {
     ) {
       excalidrawAPIUpdateRef.current = true;
       console.log("Updating scene from subscription data.");
+      excalidrawElementsRef.current = subscriptionData.project.elements;
       excalidrawApi.updateScene({
         elements: JSON.parse(subscriptionData.project.elements),
       });
