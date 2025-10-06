@@ -106,7 +106,7 @@ export const useUpdateProject = () => {
   return useMutation(QUERY);
 };
 
-export const useProjectSubscription = (projectID: string) => {
+export const useProjectSubscription = (projectID: string, skip: boolean) => {
   const QUERY = gql`
   subscription GetProjectUpdates($ID:ID!){
   project(id:$ID){
@@ -124,7 +124,7 @@ export const useProjectSubscription = (projectID: string) => {
     };
   }>(QUERY, {
     variables: { ID: projectID },
-    fetchPolicy: "network-only",
+    skip: skip,
     shouldResubscribe: true,
     onError: (error) => {
       console.error("Subscription error:", error);
