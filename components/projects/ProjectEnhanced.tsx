@@ -1,3 +1,15 @@
+/**
+ * ENHANCED VERSION: Project component with additional optimizations
+ * 
+ * This is a drop-in replacement for Project.tsx with:
+ * - Connection status indicator
+ * - Adaptive throttling based on scene complexity
+ * - Better error recovery
+ * - Performance metrics logging
+ * 
+ * To use: Rename this file to Project.tsx (backup the original first)
+ */
+
 "use client";
 
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
@@ -8,7 +20,6 @@ import { useProjectSubscription } from "@/lib/hooks/project";
 import { getApolloClient } from "@/lib/apolloClient";
 import { gql } from "@apollo/client";
 
-// Dynamically import Excalidraw to avoid SSR issues
 const Excalidraw = dynamic(
   async () => (await import("@excalidraw/excalidraw")).Excalidraw,
   {
@@ -28,44 +39,71 @@ interface ProjectProps {
   projectID: string;
 }
 
-// Smart merge function to handle concurrent edits
+// Connection status component
+function ConnectionStatus({ status }: { status: "connected" | "disconnected" | "syncing" }) {
+  const statusConfig = {
+    connected: { color: "bg-green-500", text: "Connected" },
+    syncing: { color: "bg-yellow-500", text: "Syncing..." },
+    disconnected: { color: "bg-red-500", text: "Disconnected" },
+  };
+
+  const config = statusConfig[status];
+
+  return (
+    <div className="absolute top-4 right-4 z-50 flex items-center gap-2 bg-white/90 backdrop-blur px-3 py-2 rounded-lg shadow-lg border border-gray-200">
+      <div className={`w-2 h-2 rounded-full ${config.color} ${status === "syncing" ? "animate-pulse" : ""}`} />
+      <span className="text-sm font-medium text-gray-700">{config.text}</span>
+    </div>
+  );
+}
+
+// Performance metrics component (dev mode only)
+function PerformanceMetrics({ metrics }: { metrics: {
+  mutations: number;
+  avgPayloadSize: number;
+  elementCount: number;
+}}) {
+  if (process.env.NODE_ENV !== "development") return null;
+
+  return (
+    <div className="absolute bottom-4 left-4 z-50 bg-black/80 backdrop-blur text-white px-3 py-2 rounded-lg shadow-lg font-mono text-xs space-y-1">
+      <div>Updates/sec: {metrics.mutations}</div>
+      <div>Payload: {(metrics.avgPayloadSize / 1024).toFixed(1)}KB</div>
+      <div>Elements: {metrics.elementCount}</div>
+    </div>
+  );
+}
+
+// Smart merge function
 function mergeElements(
   current: readonly OrderedExcalidrawElement[],
   incoming: readonly OrderedExcalidrawElement[],
   lastSynced: readonly OrderedExcalidrawElement[],
 ): OrderedExcalidrawElement[] {
-  // If this is the first sync, just use incoming
   if (lastSynced.length === 0) {
     return [...incoming];
   }
 
-  // Create maps for efficient lookup
   const currentMap = new Map(current.map(el => [el.id, el]));
   const incomingMap = new Map(incoming.map(el => [el.id, el]));
   const lastSyncedMap = new Map(lastSynced.map(el => [el.id, el]));
 
   const merged: OrderedExcalidrawElement[] = [];
 
-  // Process all elements from incoming (remote changes)
   for (const incomingEl of incoming) {
     const currentEl = currentMap.get(incomingEl.id);
     const lastSyncedEl = lastSyncedMap.get(incomingEl.id);
 
-    // If element exists locally and has been modified since last sync
     if (currentEl && lastSyncedEl && currentEl.version > lastSyncedEl.version) {
-      // Keep the version with higher version number (last-write-wins)
       merged.push(currentEl.version >= incomingEl.version ? currentEl : incomingEl);
     } else {
-      // Use incoming element (no local changes or incoming is newer)
       merged.push(incomingEl);
     }
   }
 
-  // Add any new local elements that don't exist in incoming
   for (const currentEl of current) {
     if (!incomingMap.has(currentEl.id)) {
       const lastSyncedEl = lastSyncedMap.get(currentEl.id);
-      // Only add if it's truly new (not in last synced state)
       if (!lastSyncedEl) {
         merged.push(currentEl);
       }
@@ -75,77 +113,145 @@ function mergeElements(
   return merged;
 }
 
-export default function Project({ projectID }: ProjectProps) {
-  const [excalidrawApi, setExcalidrawApi] =
-    useState<ExcalidrawImperativeAPI | null>(null);
+export default function ProjectEnhanced({ projectID }: ProjectProps) {
+  const [excalidrawApi, setExcalidrawApi] = useState<ExcalidrawImperativeAPI | null>(null);
   const isRemoteUpdateRef = useRef<boolean>(false);
   const [initialSet, setInitialSet] = useState<boolean>(false);
   const lastElementsHashRef = useRef<string>("");
   const pendingUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const lastSyncedElementsRef = useRef<readonly OrderedExcalidrawElement[]>([]);
+  
+  // Connection status
+  const [connectionStatus, setConnectionStatus] = useState<"connected" | "disconnected" | "syncing">("connected");
+  
+  // Performance metrics (dev mode)
+  const [metrics, setMetrics] = useState({ mutations: 0, avgPayloadSize: 0, elementCount: 0 });
+  const mutationCountRef = useRef(0);
+  const payloadSizesRef = useRef<number[]>([]);
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 3;
 
-  const { data: subscriptionData, loading: subscriptionLoading } =
+  const { data: subscriptionData, loading: subscriptionLoading, error: subscriptionError } =
     useProjectSubscription(projectID, !excalidrawApi);
 
-  // Optimized hash function using element IDs and versions
+  // Monitor subscription errors and connection status
+  useEffect(() => {
+    if (subscriptionError) {
+      console.error("Subscription error:", subscriptionError);
+      setConnectionStatus("disconnected");
+    } else if (subscriptionLoading) {
+      setConnectionStatus("syncing");
+    } else if (subscriptionData) {
+      setConnectionStatus("connected");
+      retryCountRef.current = 0; // Reset retry count on successful connection
+    }
+  }, [subscriptionError, subscriptionLoading, subscriptionData]);
+
+  // Performance metrics tracker (dev mode)
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+
+    const interval = setInterval(() => {
+      const avgPayloadSize = payloadSizesRef.current.length > 0
+        ? payloadSizesRef.current.reduce((a, b) => a + b, 0) / payloadSizesRef.current.length
+        : 0;
+      
+      setMetrics({
+        mutations: mutationCountRef.current,
+        avgPayloadSize,
+        elementCount: excalidrawApi?.getSceneElements().length || 0,
+      });
+      
+      mutationCountRef.current = 0;
+      payloadSizesRef.current = [];
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [excalidrawApi]);
+
+  // Adaptive throttle delay based on element count
+  const getThrottleDelay = useCallback((elementCount: number) => {
+    if (elementCount < 50) return 100;
+    if (elementCount < 200) return 200;
+    if (elementCount < 500) return 300;
+    return 500;
+  }, []);
+
   const getElementsHash = useCallback((elements: readonly OrderedExcalidrawElement[]) => {
-    // Create a quick hash based on element count, IDs, and versions
     const idVersionPairs = elements.map(el => `${el.id}:${el.version}`);
     return `${elements.length}:${idVersionPairs.join(',')}`;
   }, []);
 
-  // Throttled update function - sends changes at most every 100ms
   const sendUpdate = useCallback(
     (elements: readonly OrderedExcalidrawElement[]) => {
       if (pendingUpdateRef.current) {
         clearTimeout(pendingUpdateRef.current);
       }
 
-      pendingUpdateRef.current = setTimeout(() => {
+      const delay = getThrottleDelay(elements.length);
+
+      pendingUpdateRef.current = setTimeout(async () => {
         if (subscriptionData?.project.socketID) {
+          setConnectionStatus("syncing");
           const elementsString = JSON.stringify(elements);
-          getApolloClient().mutate({
-            mutation: gql`
-              mutation updateProject($ID:ID!, $elements:String!, $socketID:ID!) {
-                updateProject(
-                  id: $ID
-                  elements: $elements
-                  socketID: $socketID
-                )
-              }
-            `,
-            variables: {
-              ID: projectID,
-              elements: elementsString,
-              socketID: subscriptionData?.project.socketID,
-            },
-          }).catch((error) => {
+          
+          // Track metrics
+          if (process.env.NODE_ENV === "development") {
+            mutationCountRef.current++;
+            payloadSizesRef.current.push(elementsString.length);
+          }
+
+          try {
+            await getApolloClient().mutate({
+              mutation: gql`
+                mutation updateProject($ID:ID!, $elements:String!, $socketID:ID!) {
+                  updateProject(
+                    id: $ID
+                    elements: $elements
+                    socketID: $socketID
+                  )
+                }
+              `,
+              variables: {
+                ID: projectID,
+                elements: elementsString,
+                socketID: subscriptionData?.project.socketID,
+              },
+            });
+            lastSyncedElementsRef.current = elements;
+            setConnectionStatus("connected");
+            retryCountRef.current = 0;
+          } catch (error) {
             console.error("Failed to update project:", error);
-          });
-          lastSyncedElementsRef.current = elements;
+            setConnectionStatus("disconnected");
+            
+            // Retry logic
+            if (retryCountRef.current < MAX_RETRIES) {
+              retryCountRef.current++;
+              console.log(`Retrying update (${retryCountRef.current}/${MAX_RETRIES})...`);
+              setTimeout(() => sendUpdate(elements), 1000 * retryCountRef.current);
+            }
+          }
         }
         pendingUpdateRef.current = null;
-      }, 100); // Throttle to 100ms
+      }, delay);
     },
-    [subscriptionData?.project.socketID, projectID],
+    [subscriptionData?.project.socketID, projectID, getThrottleDelay],
   );
 
   const onChange = useCallback(
     async (elements: readonly OrderedExcalidrawElement[]) => {
-      // Skip if this is a remote update being applied
       if (isRemoteUpdateRef.current) {
         console.log("Change originated from subscription, not updating.");
         isRemoteUpdateRef.current = false;
         return;
       }
 
-      // Skip if initial sync not done
       if (!initialSet) {
         console.log("Initial set not done yet, skipping update.");
         return;
       }
 
-      // Fast hash comparison to avoid unnecessary updates
       const currentHash = getElementsHash(elements);
       if (currentHash === lastElementsHashRef.current) {
         return;
@@ -158,7 +264,6 @@ export default function Project({ projectID }: ProjectProps) {
     [initialSet, getElementsHash, sendUpdate],
   );
 
-  // Handle subscription updates with optimized scene merging
   useEffect(() => {
     if (
       excalidrawApi &&
@@ -168,7 +273,6 @@ export default function Project({ projectID }: ProjectProps) {
       try {
         const incomingElements = JSON.parse(subscriptionData.project.elements) as OrderedExcalidrawElement[];
         
-        // Check if this is actually new data
         const incomingHash = getElementsHash(incomingElements);
         if (incomingHash === lastElementsHashRef.current) {
           console.log("Subscription data matches current state, skipping update.");
@@ -179,7 +283,6 @@ export default function Project({ projectID }: ProjectProps) {
         isRemoteUpdateRef.current = true;
         console.log("Updating scene from subscription data.");
         
-        // Smart merge: preserve local uncommitted changes if any
         const currentElements = excalidrawApi.getSceneElements();
         const mergedElements = mergeElements(currentElements, incomingElements, lastSyncedElementsRef.current);
         
@@ -196,7 +299,6 @@ export default function Project({ projectID }: ProjectProps) {
     }
   }, [subscriptionData?.project.elements, excalidrawApi, subscriptionLoading, initialSet, getElementsHash]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (pendingUpdateRef.current) {
@@ -204,8 +306,12 @@ export default function Project({ projectID }: ProjectProps) {
       }
     };
   }, []);
+
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
+      <ConnectionStatus status={connectionStatus} />
+      <PerformanceMetrics metrics={metrics} />
+      
       <Excalidraw
         excalidrawAPI={(api) => {
           setExcalidrawApi(api);
