@@ -94,11 +94,12 @@ mutation createProject($name:String!, $description:String!, $owner:ID!, $persona
 
 export const useUpdateProject = () => {
   const QUERY = gql`
-    mutation updateProject($ID:ID!, $appState:String!, $elements:String!) {
+    mutation updateProject($ID:ID!, $appState:String!, $elements:String!, $socketID:ID!) {
   updateProject(
     id: $ID
     appState: $appState
     elements: $elements
+    socketID: $socketID
   )
 }
     `;
@@ -111,6 +112,7 @@ export const useProjectSubscription = (projectID: string) => {
   project(id:$ID){
     appState
     elements
+    socketID
   }
 }
   `;
@@ -118,6 +120,7 @@ export const useProjectSubscription = (projectID: string) => {
     project: {
       appState: string;
       elements: string;
+      socketID: string;
     };
   }>(QUERY, {
     variables: { ID: projectID },

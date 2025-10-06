@@ -134,6 +134,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             ID: id,
             appState: appStateString,
             elements: elementsString,
+            socketID: projectData?.project.socketID || "",
           },
         });
       },
