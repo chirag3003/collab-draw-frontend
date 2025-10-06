@@ -84,7 +84,7 @@ export default function Project({ projectID }: ProjectProps) {
   const pendingUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const lastSyncedElementsRef = useRef<readonly OrderedExcalidrawElement[]>([]);
 
-  const { data: subscriptionData, loading: subscriptionLoading } =
+  const { data: subscriptionData, loading: subscriptionLoading, error: subscriptionError } =
     useProjectSubscription(projectID, !excalidrawApi);
 
   // Optimized hash function using element IDs and versions
@@ -162,12 +162,14 @@ export default function Project({ projectID }: ProjectProps) {
   useEffect(() => {
     if (
       excalidrawApi &&
-      subscriptionData?.project.elements &&
+      // subscriptionData?.project.elements &&
       !subscriptionLoading
     ) {
       try {
-        const incomingElements = JSON.parse(subscriptionData.project.elements) as OrderedExcalidrawElement[];
-        
+        let toParse = subscriptionData?.project.elements ?? "[]";
+        if (toParse.trim() === "") toParse = "[]";
+        const incomingElements = JSON.parse(toParse) as OrderedExcalidrawElement[];
+
         // Check if this is actually new data
         const incomingHash = getElementsHash(incomingElements);
         if (incomingHash === lastElementsHashRef.current) {
@@ -204,6 +206,13 @@ export default function Project({ projectID }: ProjectProps) {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if(!subscriptionLoading && subscriptionError) {
+      location.replace("/app");
+      // console.log("No valid socketID, would redirect to /app");
+    }
+  }, [subscriptionLoading, subscriptionError]);
   return (
     <div className="w-full h-full">
       <Excalidraw
