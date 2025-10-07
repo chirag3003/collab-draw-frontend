@@ -3,14 +3,10 @@
 import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 import ProjectsList from "@/components/app/ProjectsList";
-import { 
-  useCreateProject, 
-  usePersonalProjects,
-} from "@/lib/hooks/project";
+import { useCreateProject, usePersonalProjects } from "@/lib/hooks/project";
 
 export default function App() {
-  const [getProjects, { data, error }] = usePersonalProjects();
-  console.log("Projects fetch error:", error);
+  const [getProjects, { data }] = usePersonalProjects();
   const [createProject] = useCreateProject();
   const { user } = useUser();
 
