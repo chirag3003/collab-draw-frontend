@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarDays, Cog, ExternalLink, Users } from "lucide-react";
+import { CalendarDays, ExternalLink, Users } from "lucide-react";
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import CreateProjectDialog from "./CreateProjectDialog";
 import ShareWorkspaceDialog from "./ShareWorkspaceDialog";
+import ProjectSettingsDialog from "./ProjectSettingsDialog";
 import { useUser } from "@clerk/nextjs";
 
 interface Project {
@@ -31,6 +32,12 @@ interface WorkspaceListProps {
     title: string;
     description: string;
   }) => Promise<void>;
+  onUpdateProject?: (data: {
+    id: string;
+    name: string;
+    description: string;
+  }) => Promise<void>;
+  onDeleteProject?: (id: string) => Promise<void>;
   onAddUser?: (email: string) => Promise<void>;
   onRemoveUser?: (userId: string) => Promise<void>;
   owned?: boolean;
@@ -55,6 +62,8 @@ export default function ProjectsList({
   details,
   personal = false,
   onCreateProject,
+  onUpdateProject,
+  onDeleteProject,
   onAddUser,
   onRemoveUser,
   members,
@@ -162,10 +171,12 @@ export default function ProjectsList({
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open Project
               </Link>
-              {user?.id === project.owner && (
-                <Button variant={"secondary"}>
-                  <Cog className="h-4 w-4" />
-                </Button>
+              {user?.id === project.owner && onUpdateProject && onDeleteProject && (
+                <ProjectSettingsDialog
+                  project={project}
+                  onUpdateProject={onUpdateProject}
+                  onDeleteProject={onDeleteProject}
+                />
               )}
             </CardFooter>
           </Card>

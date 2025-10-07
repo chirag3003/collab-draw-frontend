@@ -3,11 +3,18 @@
 import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 import ProjectsList from "@/components/app/ProjectsList";
-import { useCreateProject, useProjectByOwner } from "@/lib/hooks/project";
+import { 
+  useCreateProject, 
+  usePersonalProjects,
+  useUpdateProjectMetadata,
+  useDeleteProject 
+} from "@/lib/hooks/project";
 
 export default function App() {
-  const [getProjects, { data }] = useProjectByOwner();
+  const [getProjects, { data }] = usePersonalProjects();
   const [createProject] = useCreateProject();
+  const [updateProjectMetadata] = useUpdateProjectMetadata();
+  const [deleteProject] = useDeleteProject();
   const { user } = useUser();
 
   const handleCreateProject = async (data: {
@@ -24,8 +31,31 @@ export default function App() {
     });
   };
 
+  const handleUpdateProject = async (data: {
+    id: string;
+    name: string;
+    description: string;
+  }) => {
+    await updateProjectMetadata({
+      variables: {
+        ID: data.id,
+        name: data.name,
+        description: data.description,
+      },
+    });
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    await deleteProject({
+      variables: {
+        ID: id,
+      },
+    });
+  };
+
   useEffect(() => {
     if (user) {
+      console.log("Fetching projects for user:", user.id);
       getProjects({ variables: { ID: user.id } });
     }
   }, [user, getProjects]);
@@ -35,11 +65,11 @@ export default function App() {
       <div className="max-w-7xl mx-auto">
         {data && (
           <ProjectsList
-            projects={data.projectsByUser}
+            projects={data.projectsPersonalByUser}
             onCreateProject={handleCreateProject}
+            onUpdateProject={handleUpdateProject}
+            onDeleteProject={handleDeleteProject}
             personal={true}
-            // onAddUser={handleAddUser}
-            // onRemoveUser={handleRemoveUser}
           />
         )}
       </div>

@@ -27,10 +27,10 @@ export const useProjectByID = (projectID: string) => {
   }>(QUERY, { variables: { ID: projectID } });
 };
 
-export const useProjectByOwner = () => {
+export const usePersonalProjects = () => {
   const QUERY = gql`
     query GetProjectByOwner($ID:ID!){
-  projectsByUser(userId:$ID){
+  projectsPersonalByUser(userId:$ID){
     id
     name
     description
@@ -40,7 +40,7 @@ export const useProjectByOwner = () => {
 }
  `;
   return useLazyQuery<{
-    projectsByUser: {
+    projectsPersonalByUser: {
       id: string;
       name: string;
       description: string;
@@ -131,6 +131,17 @@ export function useDeleteProject() {
   const QUERY = gql`
   mutation DeleteProject($ID:ID!){
   deleteProject(id:$ID)
+}
+  `;
+  return useMutation(QUERY, {
+    refetchQueries: ["GetProjectByOwner", "GetProjectByWorkspace"],
+  });
+}
+
+export function useUpdateProjectMetadata() {
+  const QUERY = gql`
+  mutation UpdateProjectMetadata($ID:ID!, $name:String!, $description:String!){
+  updateProjectMetadata(id:$ID, name:$name, description:$description)
 }
   `;
   return useMutation(QUERY, {

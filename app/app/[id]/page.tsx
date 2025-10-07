@@ -3,7 +3,12 @@
 import { useUser } from "@clerk/nextjs";
 import { use } from "react";
 import ProjectsList from "@/components/app/ProjectsList";
-import { useCreateProject, useProjectsByWorkspace } from "@/lib/hooks/project";
+import { 
+  useCreateProject, 
+  useProjectsByWorkspace,
+  useUpdateProjectMetadata,
+  useDeleteProject 
+} from "@/lib/hooks/project";
 import {
   useAddUserToWorkspace,
   useRemoveUserFromWorkspace,
@@ -19,6 +24,8 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
   const { data: workspaceData, loading } = useWorkspace(id);
   const { data: projectsData } = useProjectsByWorkspace(id);
   const [createProject] = useCreateProject();
+  const [updateProjectMetadata] = useUpdateProjectMetadata();
+  const [deleteProject] = useDeleteProject();
   const [addUser] = useAddUserToWorkspace();
   const [removeUser] = useRemoveUserFromWorkspace();
 
@@ -33,6 +40,28 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
         personal: false,
         owner: user?.id ?? "",
         workspace: id,
+      },
+    });
+  };
+
+  const handleUpdateProject = async (data: {
+    id: string;
+    name: string;
+    description: string;
+  }) => {
+    await updateProjectMetadata({
+      variables: {
+        ID: data.id,
+        name: data.name,
+        description: data.description,
+      },
+    });
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    await deleteProject({
+      variables: {
+        ID: projectId,
       },
     });
   };
@@ -59,6 +88,8 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
     location.replace("/app")
   }
 
+  console.log(projectsData)
+
   return (
     <div className="h-full p-8">
       <div className="max-w-7xl mx-auto">
@@ -67,6 +98,8 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
             projects={projectsData.projectsByWorkspace}
             members={workspaceData.workspace.members}
             onCreateProject={handleCreateProject}
+            onUpdateProject={handleUpdateProject}
+            onDeleteProject={handleDeleteProject}
             personal={false}
             details={{
               title: workspaceData.workspace.name,
