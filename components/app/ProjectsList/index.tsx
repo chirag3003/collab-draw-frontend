@@ -32,12 +32,6 @@ interface WorkspaceListProps {
     title: string;
     description: string;
   }) => Promise<void>;
-  onUpdateProject?: (data: {
-    id: string;
-    name: string;
-    description: string;
-  }) => Promise<void>;
-  onDeleteProject?: (id: string) => Promise<void>;
   onAddUser?: (email: string) => Promise<void>;
   onRemoveUser?: (userId: string) => Promise<void>;
   owned?: boolean;
@@ -62,8 +56,6 @@ export default function ProjectsList({
   details,
   personal = false,
   onCreateProject,
-  onUpdateProject,
-  onDeleteProject,
   onAddUser,
   onRemoveUser,
   members,
@@ -171,12 +163,8 @@ export default function ProjectsList({
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open Project
               </Link>
-              {user?.id === project.owner && onUpdateProject && onDeleteProject && (
-                <ProjectSettingsDialog
-                  project={project}
-                  onUpdateProject={onUpdateProject}
-                  onDeleteProject={onDeleteProject}
-                />
+              {user?.id === project.owner && (
+                <ProjectSettingsDialog project={project} />
               )}
             </CardFooter>
           </Card>

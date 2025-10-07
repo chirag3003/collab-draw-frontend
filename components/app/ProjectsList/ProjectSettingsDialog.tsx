@@ -1,16 +1,7 @@
 "use client";
 
+import { Cog, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Cog, Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,9 +12,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+// import { Textarea } from "@/components/ui/textarea";
+import {
+  useDeleteProject,
+  useUpdateProjectMetadata,
+} from "@/lib/hooks/project";
 
 interface ProjectSettingsDialogProps {
   project: {
@@ -31,24 +35,18 @@ interface ProjectSettingsDialogProps {
     name: string;
     description?: string;
   };
-  onUpdateProject: (data: {
-    id: string;
-    name: string;
-    description: string;
-  }) => Promise<void>;
-  onDeleteProject: (id: string) => Promise<void>;
 }
 
 export default function ProjectSettingsDialog({
   project,
-  onUpdateProject,
-  onDeleteProject,
 }: ProjectSettingsDialogProps) {
   const [open, setOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  
+  const [deleteProject] = useDeleteProject();
+  const [updateProject] = useUpdateProjectMetadata();
+
   const [formData, setFormData] = useState({
     name: project.name,
     description: project.description || "",
@@ -61,10 +59,12 @@ export default function ProjectSettingsDialog({
 
     setIsLoading(true);
     try {
-      await onUpdateProject({
-        id: project.id,
-        name: formData.name.trim(),
-        description: formData.description.trim(),
+      await updateProject({
+        variables: {
+          ID: project.id,
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+        },
       });
       setOpen(false);
     } catch (error) {
@@ -77,7 +77,11 @@ export default function ProjectSettingsDialog({
   const handleDeleteProject = async () => {
     setIsDeleting(true);
     try {
-      await onDeleteProject(project.id);
+      await deleteProject({
+        variables: {
+          ID: project.id,
+        },
+      });
       setShowDeleteConfirm(false);
       setOpen(false);
     } catch (error) {
@@ -117,11 +121,6 @@ export default function ProjectSettingsDialog({
           <div className="space-y-4 py-4">
             {/* Edit Section */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <Pencil className="h-4 w-4" />
-                <span>Edit Project</span>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="project-name">Project Name</Label>
                 <Input
@@ -135,7 +134,7 @@ export default function ProjectSettingsDialog({
                 />
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="project-description">Description</Label>
                 <Textarea
                   id="project-description"
@@ -147,7 +146,7 @@ export default function ProjectSettingsDialog({
                   rows={3}
                   disabled={isLoading}
                 />
-              </div>
+              </div> */}
 
               <Button
                 onClick={handleUpdateProject}
@@ -172,10 +171,6 @@ export default function ProjectSettingsDialog({
 
             {/* Delete Section */}
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-destructive">
-                <Trash2 className="h-4 w-4" />
-                <span>Delete Project</span>
-              </div>
               <p className="text-sm text-muted-foreground">
                 Once you delete a project, there is no going back. Please be
                 certain.
@@ -183,7 +178,7 @@ export default function ProjectSettingsDialog({
               <Button
                 variant="destructive"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="w-full"
+                className="w-full dark:bg-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Project

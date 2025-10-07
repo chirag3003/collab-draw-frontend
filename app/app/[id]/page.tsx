@@ -6,8 +6,6 @@ import ProjectsList from "@/components/app/ProjectsList";
 import { 
   useCreateProject, 
   useProjectsByWorkspace,
-  useUpdateProjectMetadata,
-  useDeleteProject 
 } from "@/lib/hooks/project";
 import {
   useAddUserToWorkspace,
@@ -24,8 +22,6 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
   const { data: workspaceData, loading } = useWorkspace(id);
   const { data: projectsData } = useProjectsByWorkspace(id);
   const [createProject] = useCreateProject();
-  const [updateProjectMetadata] = useUpdateProjectMetadata();
-  const [deleteProject] = useDeleteProject();
   const [addUser] = useAddUserToWorkspace();
   const [removeUser] = useRemoveUserFromWorkspace();
 
@@ -40,28 +36,6 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
         personal: false,
         owner: user?.id ?? "",
         workspace: id,
-      },
-    });
-  };
-
-  const handleUpdateProject = async (data: {
-    id: string;
-    name: string;
-    description: string;
-  }) => {
-    await updateProjectMetadata({
-      variables: {
-        ID: data.id,
-        name: data.name,
-        description: data.description,
-      },
-    });
-  };
-
-  const handleDeleteProject = async (projectId: string) => {
-    await deleteProject({
-      variables: {
-        ID: projectId,
       },
     });
   };
@@ -98,8 +72,6 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
             projects={projectsData.projectsByWorkspace}
             members={workspaceData.workspace.members}
             onCreateProject={handleCreateProject}
-            onUpdateProject={handleUpdateProject}
-            onDeleteProject={handleDeleteProject}
             personal={false}
             details={{
               title: workspaceData.workspace.name,

@@ -6,15 +6,12 @@ import ProjectsList from "@/components/app/ProjectsList";
 import { 
   useCreateProject, 
   usePersonalProjects,
-  useUpdateProjectMetadata,
-  useDeleteProject 
 } from "@/lib/hooks/project";
 
 export default function App() {
-  const [getProjects, { data }] = usePersonalProjects();
+  const [getProjects, { data, error }] = usePersonalProjects();
+  console.log("Projects fetch error:", error);
   const [createProject] = useCreateProject();
-  const [updateProjectMetadata] = useUpdateProjectMetadata();
-  const [deleteProject] = useDeleteProject();
   const { user } = useUser();
 
   const handleCreateProject = async (data: {
@@ -27,28 +24,6 @@ export default function App() {
         description: data.description,
         personal: true,
         owner: user?.id ?? "",
-      },
-    });
-  };
-
-  const handleUpdateProject = async (data: {
-    id: string;
-    name: string;
-    description: string;
-  }) => {
-    await updateProjectMetadata({
-      variables: {
-        ID: data.id,
-        name: data.name,
-        description: data.description,
-      },
-    });
-  };
-
-  const handleDeleteProject = async (id: string) => {
-    await deleteProject({
-      variables: {
-        ID: id,
       },
     });
   };
@@ -67,8 +42,6 @@ export default function App() {
           <ProjectsList
             projects={data.projectsPersonalByUser}
             onCreateProject={handleCreateProject}
-            onUpdateProject={handleUpdateProject}
-            onDeleteProject={handleDeleteProject}
             personal={true}
           />
         )}
