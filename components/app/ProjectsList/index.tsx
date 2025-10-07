@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarDays, ExternalLink, Users } from "lucide-react";
+import { CalendarDays, Cog, ExternalLink, Users } from "lucide-react";
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,6 +18,7 @@ interface Project {
   id: string;
   name: string;
   createdAt: string;
+  owner: string;
   description?: string;
   bannerImage?: string;
 }
@@ -151,16 +152,21 @@ export default function ProjectsList({
               </div>
             </CardContent>
 
-            <CardFooter className="px-4">
+            <CardFooter className="px-4 flex gap-2">
               <Link
                 href={`/projects/${project.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cn(buttonVariants(), "w-full")}
+                className={cn(buttonVariants(), "flex-1")}
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Open Project
               </Link>
+              {user?.id === project.owner && (
+                <Button variant={"secondary"}>
+                  <Cog className="h-4 w-4" />
+                </Button>
+              )}
             </CardFooter>
           </Card>
         ))}
