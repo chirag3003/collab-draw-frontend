@@ -126,3 +126,14 @@ export const useProjectSubscription = (projectID: string, skip: boolean) => {
     },
   });
 };
+
+export function useDeleteProject() {
+  const QUERY = gql`
+  mutation DeleteProject($ID:ID!){
+  deleteProject(id:$ID)
+}
+  `;
+  return useMutation(QUERY, {
+    refetchQueries: ["GetProjectByOwner", "GetProjectByWorkspace"],
+  });
+}

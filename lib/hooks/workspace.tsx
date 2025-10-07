@@ -124,3 +124,14 @@ mutation RemoveUserFromWorkspace($ID:ID!, $userID:ID!){
     refetchQueries: ["GetWorkspace"],
   });
 }
+
+export function useDeleteWorkspace() {
+  const QUERY = gql`
+mutation DeleteWorkspace($ID:ID!){
+  deleteWorkspace(id:$ID)
+}
+  `;
+  return useMutation(QUERY, {
+    refetchQueries: ["GetWorkspaceByID"],
+  });
+}
