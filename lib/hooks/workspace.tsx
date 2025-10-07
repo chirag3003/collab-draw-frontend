@@ -135,3 +135,14 @@ mutation DeleteWorkspace($ID:ID!){
     refetchQueries: ["GetWorkspaceByID"],
   });
 }
+
+export function useUpdateWorkspaceMetadata() {
+  const QUERY = gql`
+mutation UpdateWorkspaceMetadata($ID:ID!, $name:String!, $description:String!){
+  updateWorkspaceMetadata(id:$ID, name:$name, description:$description)
+}
+  `;
+  return useMutation(QUERY, {
+    refetchQueries: ["GetWorkspace", "GetWorkspaceByID"],
+  });
+}

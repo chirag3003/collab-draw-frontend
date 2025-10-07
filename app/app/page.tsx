@@ -26,7 +26,6 @@ export default function App() {
 
   useEffect(() => {
     if (user) {
-      console.log("Fetching projects for user:", user.id);
       getProjects({ variables: { ID: user.id } });
     }
   }, [user, getProjects]);

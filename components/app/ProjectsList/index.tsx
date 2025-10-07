@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarDays, ExternalLink, Users } from "lucide-react";
+import { CalendarDays, Cog, ExternalLink, Users } from "lucide-react";
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import CreateProjectDialog from "./CreateProjectDialog";
 import ShareWorkspaceDialog from "./ShareWorkspaceDialog";
 import ProjectSettingsDialog from "./ProjectSettingsDialog";
+import WorkspaceSettingsDialog from "./WorkspaceSettingsDialog";
 import { useUser } from "@clerk/nextjs";
 
 interface Project {
@@ -28,6 +29,7 @@ interface WorkspaceListProps {
   projects: Project[];
   details?: { title: string; description: string };
   personal: boolean;
+  workspaceId?: string;
   onCreateProject: (data: {
     title: string;
     description: string;
@@ -55,6 +57,7 @@ export default function ProjectsList({
   projects,
   details,
   personal = false,
+  workspaceId,
   onCreateProject,
   onAddUser,
   onRemoveUser,
@@ -104,6 +107,20 @@ export default function ProjectsList({
           </p>
         </div>
         <div className="controls flex space-x-3">
+          {!personal && owned && workspaceId && (
+            <WorkspaceSettingsDialog
+              workspace={{
+                id: workspaceId,
+                name: details?.title || "",
+                description: details?.description || "",
+              }}
+              trigger={
+                <Button variant={"outline"}>
+                  <Cog className="h-4 w-4" />
+                </Button>
+              }
+            />
+          )}
           {!personal && (
             <ShareWorkspaceDialog
               members={members}

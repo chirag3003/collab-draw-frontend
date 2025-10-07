@@ -3,10 +3,7 @@
 import { useUser } from "@clerk/nextjs";
 import { use } from "react";
 import ProjectsList from "@/components/app/ProjectsList";
-import { 
-  useCreateProject, 
-  useProjectsByWorkspace,
-} from "@/lib/hooks/project";
+import { useCreateProject, useProjectsByWorkspace } from "@/lib/hooks/project";
 import {
   useAddUserToWorkspace,
   useRemoveUserFromWorkspace,
@@ -62,14 +59,13 @@ export default function WorkspaceApp({ params }: WorkspaceAppProps) {
     location.replace("/app")
   }
 
-  console.log(projectsData)
-
   return (
     <div className="h-full p-8">
       <div className="max-w-7xl mx-auto">
         {!loading && workspaceData && workspaceData.workspace && projectsData && (
           <ProjectsList
             projects={projectsData.projectsByWorkspace}
+            workspaceId={id}
             members={workspaceData.workspace.members}
             onCreateProject={handleCreateProject}
             personal={false}
