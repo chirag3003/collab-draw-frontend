@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client";
+import type { AppState } from "@excalidraw/excalidraw/types";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Project from "@/components/projects/Project";
 import { getServerApollo } from "@/lib/serverApollo";
-import { AppState } from "@excalidraw/excalidraw/types";
 
 interface ProjectPageProps {
   params: Promise<{
