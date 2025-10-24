@@ -1,12 +1,16 @@
 "use client";
 
+import { gql } from "@apollo/client";
 import type { OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
-import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+import type {
+  AppState,
+  ExcalidrawImperativeAPI,
+} from "@excalidraw/excalidraw/types";
+import Cookies from "js-cookie";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useProjectSubscription } from "@/lib/hooks/project";
 import { getApolloClient } from "@/lib/apolloClient";
-import { gql } from "@apollo/client";
+import { useProjectSubscription } from "@/lib/hooks/project";
 
 // Dynamically import Excalidraw to avoid SSR issues
 const Excalidraw = dynamic(
@@ -26,6 +30,7 @@ const Excalidraw = dynamic(
 
 interface ProjectProps {
   projectID: string;
+  initialAppState: AppState;
 }
 
 // Smart merge function to handle concurrent edits
@@ -40,9 +45,9 @@ function mergeElements(
   }
 
   // Create maps for efficient lookup
-  const currentMap = new Map(current.map(el => [el.id, el]));
-  const incomingMap = new Map(incoming.map(el => [el.id, el]));
-  const lastSyncedMap = new Map(lastSynced.map(el => [el.id, el]));
+  const currentMap = new Map(current.map((el) => [el.id, el]));
+  const incomingMap = new Map(incoming.map((el) => [el.id, el]));
+  const lastSyncedMap = new Map(lastSynced.map((el) => [el.id, el]));
 
   const merged: OrderedExcalidrawElement[] = [];
 
@@ -54,7 +59,9 @@ function mergeElements(
     // If element exists locally and has been modified since last sync
     if (currentEl && lastSyncedEl && currentEl.version > lastSyncedEl.version) {
       // Keep the version with higher version number (last-write-wins)
-      merged.push(currentEl.version >= incomingEl.version ? currentEl : incomingEl);
+      merged.push(
+        currentEl.version >= incomingEl.version ? currentEl : incomingEl,
+      );
     } else {
       // Use incoming element (no local changes or incoming is newer)
       merged.push(incomingEl);
@@ -75,7 +82,7 @@ function mergeElements(
   return merged;
 }
 
-export default function Project({ projectID }: ProjectProps) {
+export default function Project({ projectID, initialAppState }: ProjectProps) {
   const [excalidrawApi, setExcalidrawApi] =
     useState<ExcalidrawImperativeAPI | null>(null);
   const isRemoteUpdateRef = useRef<boolean>(false);
@@ -84,15 +91,21 @@ export default function Project({ projectID }: ProjectProps) {
   const pendingUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const lastSyncedElementsRef = useRef<readonly OrderedExcalidrawElement[]>([]);
 
-  const { data: subscriptionData, loading: subscriptionLoading, error: subscriptionError } =
-    useProjectSubscription(projectID, !excalidrawApi);
+  const {
+    data: subscriptionData,
+    loading: subscriptionLoading,
+    error: subscriptionError,
+  } = useProjectSubscription(projectID, !excalidrawApi);
 
   // Optimized hash function using element IDs and versions
-  const getElementsHash = useCallback((elements: readonly OrderedExcalidrawElement[]) => {
-    // Create a quick hash based on element count, IDs, and versions
-    const idVersionPairs = elements.map(el => `${el.id}:${el.version}`);
-    return `${elements.length}:${idVersionPairs.join(',')}`;
-  }, []);
+  const getElementsHash = useCallback(
+    (elements: readonly OrderedExcalidrawElement[]) => {
+      // Create a quick hash based on element count, IDs, and versions
+      const idVersionPairs = elements.map((el) => `${el.id}:${el.version}`);
+      return `${elements.length}:${idVersionPairs.join(",")}`;
+    },
+    [],
+  );
 
   // Throttled update function - sends changes at most every 100ms
   const sendUpdate = useCallback(
@@ -104,8 +117,9 @@ export default function Project({ projectID }: ProjectProps) {
       pendingUpdateRef.current = setTimeout(() => {
         if (subscriptionData?.project.socketID) {
           const elementsString = JSON.stringify(elements);
-          getApolloClient().mutate({
-            mutation: gql`
+          getApolloClient()
+            .mutate({
+              mutation: gql`
               mutation updateProject($ID:ID!, $elements:String!, $socketID:ID!) {
                 updateProject(
                   id: $ID
@@ -114,14 +128,15 @@ export default function Project({ projectID }: ProjectProps) {
                 )
               }
             `,
-            variables: {
-              ID: projectID,
-              elements: elementsString,
-              socketID: subscriptionData?.project.socketID,
-            },
-          }).catch((error) => {
-            console.error("Failed to update project:", error);
-          });
+              variables: {
+                ID: projectID,
+                elements: elementsString,
+                socketID: subscriptionData?.project.socketID,
+              },
+            })
+            .catch((error) => {
+              console.error("Failed to update project:", error);
+            });
           lastSyncedElementsRef.current = elements;
         }
         pendingUpdateRef.current = null;
@@ -158,6 +173,10 @@ export default function Project({ projectID }: ProjectProps) {
     [initialSet, getElementsHash, sendUpdate],
   );
 
+  function setAppState(appState: AppState) {
+    Cookies.set(`appState_${projectID}`, JSON.stringify(appState));
+  }
+
   // Handle subscription updates with optimized scene merging
   useEffect(() => {
     if (
@@ -168,23 +187,31 @@ export default function Project({ projectID }: ProjectProps) {
       try {
         let toParse = subscriptionData?.project.elements ?? "[]";
         if (toParse.trim() === "") toParse = "[]";
-        const incomingElements = JSON.parse(toParse) as OrderedExcalidrawElement[];
+        const incomingElements = JSON.parse(
+          toParse,
+        ) as OrderedExcalidrawElement[];
 
         // Check if this is actually new data
         const incomingHash = getElementsHash(incomingElements);
         if (incomingHash === lastElementsHashRef.current) {
-          console.log("Subscription data matches current state, skipping update.");
+          console.log(
+            "Subscription data matches current state, skipping update.",
+          );
           if (!initialSet) setInitialSet(true);
           return;
         }
 
         isRemoteUpdateRef.current = true;
         console.log("Updating scene from subscription data.");
-        
+
         // Smart merge: preserve local uncommitted changes if any
         const currentElements = excalidrawApi.getSceneElements();
-        const mergedElements = mergeElements(currentElements, incomingElements, lastSyncedElementsRef.current);
-        
+        const mergedElements = mergeElements(
+          currentElements,
+          incomingElements,
+          lastSyncedElementsRef.current,
+        );
+
         lastElementsHashRef.current = getElementsHash(mergedElements);
         excalidrawApi.updateScene({
           elements: mergedElements,
@@ -196,7 +223,13 @@ export default function Project({ projectID }: ProjectProps) {
         isRemoteUpdateRef.current = false;
       }
     }
-  }, [subscriptionData?.project.elements, excalidrawApi, subscriptionLoading, initialSet, getElementsHash]);
+  }, [
+    subscriptionData?.project.elements,
+    excalidrawApi,
+    subscriptionLoading,
+    initialSet,
+    getElementsHash,
+  ]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -208,7 +241,7 @@ export default function Project({ projectID }: ProjectProps) {
   }, []);
 
   useEffect(() => {
-    if(!subscriptionLoading && subscriptionError) {
+    if (!subscriptionLoading && subscriptionError) {
       location.replace("/app");
       // console.log("No valid socketID, would redirect to /app");
     }
@@ -216,10 +249,17 @@ export default function Project({ projectID }: ProjectProps) {
   return (
     <div className="w-full h-full">
       <Excalidraw
+        initialData={{
+          appState: initialAppState,
+        }}
+
         excalidrawAPI={(api) => {
           setExcalidrawApi(api);
         }}
-        onChange={(elements) => onChange(elements)}
+        onChange={(elements, appState) => {
+          onChange(elements);
+          setAppState(appState);
+        }}
         UIOptions={{
           canvasActions: {
             toggleTheme: true,

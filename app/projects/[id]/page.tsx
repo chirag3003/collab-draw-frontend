@@ -1,7 +1,9 @@
 import { gql } from "@apollo/client";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import Project from "@/components/projects/Project";
 import { getServerApollo } from "@/lib/serverApollo";
-import { redirect } from "next/navigation";
+import { AppState } from "@excalidraw/excalidraw/types";
 
 interface ProjectPageProps {
   params: Promise<{
@@ -34,8 +36,15 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   } catch {
     redirect("/app");
   }
+  const cookieStore = await cookies();
+  const appState = cookieStore.get(`appState_${id}`)?.value || "null";
 
-  return <Project projectID={id} />;
+  const parsedAppState: AppState = JSON.parse(appState);
+  if (parsedAppState !== null) {
+    parsedAppState.collaborators = new Map()
+  }
+
+  return <Project projectID={id} initialAppState={parsedAppState} />;
 }
 
 export async function generateMetadata({ params }: ProjectPageProps) {
