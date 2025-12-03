@@ -30,7 +30,7 @@ export default function RootLayout({
       <ApolloProvider>
         <html lang="en">
           <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased dark bg-background`}
+            className={`${geistSans.variable} ${geistMono.variable} antialiased  bg-background`}
           >
             {children}
           </body>
