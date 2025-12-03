@@ -122,7 +122,7 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               <SignedOut>
                 <SignInButton>
-                  <Button variant="ghost">Sign In</Button>
+                  <Button variant="ghost" className="hover:text-white">Sign In</Button>
                 </SignInButton>
                 <SignUpButton>
                   <Button>Get Started</Button>
