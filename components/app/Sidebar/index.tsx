@@ -8,19 +8,24 @@ import {
   Search,
   Settings,
   Users,
+  Home,
+  Plus,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   useCreateWorkspace,
   useSharedWorkspaces,
   useWorkspaces,
 } from "@/lib/hooks/workspace";
 import CreateWorkspaceDialog from "./CreateWorkspaceDialog";
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   userID: string;
@@ -33,10 +38,41 @@ export default function Sidebar({ userID }: SidebarProps) {
   const { user } = useUser();
   const pathname = usePathname();
   const [createWorkspace] = useCreateWorkspace();
-  const [sharedWs, setSharedWs] = useState(false);
-  const workspacesToShow = sharedWs
-    ? sharedWorkspaces?.sharedWorkspacesByUser
-    : workspaces?.workspacesByUser;
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Determine current view based on pathname
+  const isPersonalView = pathname === "/app";
+  const currentWorkspaceId = pathname.startsWith("/app/") ? pathname.split("/app/")[1] : null;
+
+  // Determine which workspace type is active
+  const isInSharedWorkspace = useMemo(() => {
+    if (!currentWorkspaceId) return false;
+    return sharedWorkspaces?.sharedWorkspacesByUser?.some(ws => ws.id === currentWorkspaceId) ?? false;
+  }, [currentWorkspaceId, sharedWorkspaces]);
+
+  const isInMyWorkspace = useMemo(() => {
+    if (!currentWorkspaceId) return false;
+    return workspaces?.workspacesByUser?.some(ws => ws.id === currentWorkspaceId) ?? false;
+  }, [currentWorkspaceId, workspaces]);
+
+  // Filter workspaces based on search
+  const filteredMyWorkspaces = useMemo(() => {
+    const list = workspaces?.workspacesByUser ?? [];
+    if (!searchQuery.trim()) return list;
+    return list.filter(ws => 
+      ws.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ws.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [workspaces, searchQuery]);
+
+  const filteredSharedWorkspaces = useMemo(() => {
+    const list = sharedWorkspaces?.sharedWorkspacesByUser ?? [];
+    if (!searchQuery.trim()) return list;
+    return list.filter(ws => 
+      ws.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ws.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [sharedWorkspaces, searchQuery]);
 
   const handleCreateWorkspace = async (data: {
     title: string;
@@ -55,109 +91,191 @@ export default function Sidebar({ userID }: SidebarProps) {
   };
 
   return (
-    <div className="w-80 h-screen border-r border-sidebar-border flex flex-col">
-      {/* Navigation Section */}
-      <div className="p-6 space-y-4 flex-1 overflow-hidden flex flex-col">
-        {/* My Workspace */}
-        <Link className={buttonVariants({ variant: "outline" })} href={"/app"}>
-          Personal
-        </Link>
-        <Button
-          variant={sharedWs || pathname === "/app" ? "secondary" : "default"}
-          className="w-full justify-start h-11 rounded-lg font-medium"
-          onClick={() => setSharedWs(false)}
-        >
-          <FolderOpen className="h-4 w-4 mr-3" />
-          My Workspaces
-        </Button>
+    <div className="w-80 h-screen border-r border-sidebar-border flex flex-col bg-sidebar">
+      {/* Header with Logo */}
+      <div className="p-6 pb-4 border-b border-sidebar-border">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center">
+            <FileText className="h-6 w-6 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-sidebar-foreground">Collab Draw</h1>
+            <p className="text-xs text-sidebar-foreground/60">Your Workspaces</p>
+          </div>
+        </div>
+      </div>
 
-        {/* Shared with Me */}
-        <Button
-          variant={sharedWs && pathname !== "/app" ? "default" : "secondary"}
-          className="w-full justify-start h-11 rounded-lg font-medium"
-          onClick={() => setSharedWs(true)}
+      {/* Navigation Section */}
+      <div className="px-4 py-4 space-y-2 flex-1 overflow-hidden flex flex-col">
+        {/* Personal Projects - Clear Active State */}
+        <Link 
+          href="/app"
+          className={cn(
+            "flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all",
+            isPersonalView 
+              ? "bg-primary text-primary-foreground shadow-sm" 
+              : "hover:bg-sidebar-accent text-sidebar-foreground/80 hover:text-sidebar-foreground"
+          )}
         >
-          <Users className="h-4 w-4 mr-3" />
-          Shared with Me
-        </Button>
+          <Home className="h-5 w-5 flex-shrink-0" />
+          <span className="flex-1">Personal Projects</span>
+          {isPersonalView && <ChevronRight className="h-4 w-4" />}
+        </Link>
+
+        {/* Divider */}
+        <div className="relative py-3">
+          <div className="absolute inset-0 flex items-center px-4">
+            <div className="w-full border-t border-sidebar-border" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-sidebar px-3 text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider">
+              Team Workspaces
+            </span>
+          </div>
+        </div>
 
         {/* Search */}
-        <div className="relative pt-2 flex items-center">
-          <Search className="absolute left-3 h-4 w-4 text-sidebar-foreground/50" />
+        <div className="relative px-2">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-sidebar-foreground/50" />
           <Input
             placeholder="Search workspaces..."
-            className="pl-10 h-11 rounded-lg"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 h-10 bg-sidebar-accent/30 border-sidebar-border"
           />
         </div>
 
-        {/* Workspace List */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          <h3 className="text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider mb-3 mt-4">
-            {sharedWs ? "SHARED WORKSPACE" : "MY WORKSPACE"}
-          </h3>
-          <div className="flex-1 overflow-y-auto space-y-1 pr-2">
-            {workspacesToShow
-              ? workspacesToShow.map((project) => (
+        {/* Workspace Lists */}
+        <div className="flex-1 overflow-y-auto space-y-4 px-2 py-2">
+          {/* My Workspaces Section */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between px-2 py-1">
+              <div className="flex items-center gap-2">
+                <FolderOpen className="h-4 w-4 text-sidebar-foreground/60" />
+                <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider">
+                  My Workspaces
+                </h3>
+              </div>
+              <Badge variant="secondary" className="text-xs h-5 min-w-[20px] justify-center">
+                {filteredMyWorkspaces.length}
+              </Badge>
+            </div>
+            <div className="space-y-0.5">
+              {filteredMyWorkspaces.length > 0 ? (
+                filteredMyWorkspaces.map((workspace) => (
                   <Link
-                    href={`/app/${project.id}`}
-                    key={project.id}
-                    className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
-                      pathname.endsWith(project.id)
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    href={`/app/${workspace.id}`}
+                    key={workspace.id}
+                    className={cn(
+                      "group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+                      currentWorkspaceId === workspace.id && isInMyWorkspace
+                        ? "bg-primary text-primary-foreground shadow-sm"
                         : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"
-                    }`}
+                    )}
                   >
-                    <div className="flex items-center space-x-3 flex-1 min-w-0">
-                      <FileText className="h-4 w-4 flex-shrink-0" />
-                      <span className="text-sm font-medium truncate">
-                        {project.name}
-                      </span>
-                    </div>
+                    <FileText className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm font-medium truncate flex-1">
+                      {workspace.name}
+                    </span>
+                    {currentWorkspaceId === workspace.id && isInMyWorkspace && (
+                      <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                    )}
                   </Link>
                 ))
-              : null}
+              ) : (
+                <p className="text-xs text-sidebar-foreground/50 px-3 py-2">
+                  {searchQuery ? "No workspaces found" : "No workspaces yet"}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Shared Workspaces Section */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between px-2 py-1">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-sidebar-foreground/60" />
+                <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider">
+                  Shared with Me
+                </h3>
+              </div>
+              <Badge variant="secondary" className="text-xs h-5 min-w-[20px] justify-center">
+                {filteredSharedWorkspaces.length}
+              </Badge>
+            </div>
+            <div className="space-y-0.5">
+              {filteredSharedWorkspaces.length > 0 ? (
+                filteredSharedWorkspaces.map((workspace) => (
+                  <Link
+                    href={`/app/${workspace.id}`}
+                    key={workspace.id}
+                    className={cn(
+                      "group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+                      currentWorkspaceId === workspace.id && isInSharedWorkspace
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"
+                    )}
+                  >
+                    <FileText className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm font-medium truncate flex-1">
+                      {workspace.name}
+                    </span>
+                    {currentWorkspaceId === workspace.id && isInSharedWorkspace && (
+                      <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                    )}
+                  </Link>
+                ))
+              ) : (
+                <p className="text-xs text-sidebar-foreground/50 px-3 py-2">
+                  {searchQuery ? "No workspaces found" : "No shared workspaces"}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
       {/* User Profile Section */}
-      <div className="p-6 border-t max-w-full">
-        <div className="flex items-center gap-3 mb-4 max-w-full overflow-hidden">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={user?.imageUrl} alt="Sophia Carter" />
-            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground font-semibold text-lg">
-              CB
+      <div className="p-4 border-t border-sidebar-border bg-sidebar">
+        {/* New Workspace Button - Prominent */}
+        <CreateWorkspaceDialog onCreateWorkspace={handleCreateWorkspace} />
+
+        {/* User Profile */}
+        <div className="flex items-center gap-3 mt-4 p-3 rounded-lg hover:bg-sidebar-accent/30 transition-colors">
+          <Avatar className="h-10 w-10 ring-2 ring-sidebar-border">
+            <AvatarImage src={user?.imageUrl} alt={user?.fullName || "User"} />
+            <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 overflow-hidden">
-            <h2 className="font-semibold text-sidebar-foreground text-lg">
+          <div className="flex-1 overflow-hidden min-w-0">
+            <h2 className="font-semibold text-sidebar-foreground text-sm truncate">
               {user?.fullName}
             </h2>
-            <p className="text-sm text-sidebar-foreground/70 w-full truncate">
+            <p className="text-xs text-sidebar-foreground/60 truncate">
               {user?.emailAddresses[0]?.emailAddress}
             </p>
           </div>
-          <div className="">
+          <div className="flex gap-1 flex-shrink-0">
+            <Button
+              onClick={() => openUserProfile()}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-sidebar-accent"
+              title="Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
             <SignOutButton>
               <Button
                 variant="ghost"
-                className="px-3 py-1 cursor-pointer hover:bg-red-100 hover:text-red-600 .dark:hover:bg-red-900/50 dark:hover:bg-red-50"
+                size="icon"
+                className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                title="Sign Out"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
             </SignOutButton>
           </div>
-        </div>
-
-        {/* New workspace Button */}
-        <div className="flex gap-2 w-full overflow-hidden">
-          <CreateWorkspaceDialog onCreateWorkspace={handleCreateWorkspace} />
-          <Button
-            className="h-11 w-11"
-            onClick={() => openUserProfile()}
-            variant="ghost"
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
         </div>
       </div>
     </div>
