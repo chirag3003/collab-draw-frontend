@@ -9,14 +9,13 @@ import {
   Settings,
   Users,
   Home,
-  Plus,
   ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -39,6 +38,8 @@ export default function Sidebar({ userID }: SidebarProps) {
   const pathname = usePathname();
   const [createWorkspace] = useCreateWorkspace();
   const [searchQuery, setSearchQuery] = useState("");
+  const [myWorkspacesExpanded, setMyWorkspacesExpanded] = useState(true);
+  const [sharedWorkspacesExpanded, setSharedWorkspacesExpanded] = useState(true);
 
   // Determine current view based on pathname
   const isPersonalView = pathname === "/app";
@@ -149,8 +150,18 @@ export default function Sidebar({ userID }: SidebarProps) {
         <div className="flex-1 overflow-y-auto space-y-4 px-2 py-2">
           {/* My Workspaces Section */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between px-2 py-1">
+            <button
+              type="button"
+              onClick={() => setMyWorkspacesExpanded(!myWorkspacesExpanded)}
+              className="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-sidebar-accent/30 transition-colors group"
+            >
               <div className="flex items-center gap-2">
+                <ChevronRight 
+                  className={cn(
+                    "h-4 w-4 text-sidebar-foreground/60 transition-transform",
+                    myWorkspacesExpanded && "rotate-90"
+                  )} 
+                />
                 <FolderOpen className="h-4 w-4 text-sidebar-foreground/60" />
                 <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider">
                   My Workspaces
@@ -159,41 +170,53 @@ export default function Sidebar({ userID }: SidebarProps) {
               <Badge variant="secondary" className="text-xs h-5 min-w-[20px] justify-center">
                 {filteredMyWorkspaces.length}
               </Badge>
-            </div>
-            <div className="space-y-0.5">
-              {filteredMyWorkspaces.length > 0 ? (
-                filteredMyWorkspaces.map((workspace) => (
-                  <Link
-                    href={`/app/${workspace.id}`}
-                    key={workspace.id}
-                    className={cn(
-                      "group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
-                      currentWorkspaceId === workspace.id && isInMyWorkspace
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"
-                    )}
-                  >
-                    <FileText className="h-4 w-4 flex-shrink-0" />
-                    <span className="text-sm font-medium truncate flex-1">
-                      {workspace.name}
-                    </span>
-                    {currentWorkspaceId === workspace.id && isInMyWorkspace && (
-                      <ChevronRight className="h-4 w-4 flex-shrink-0" />
-                    )}
-                  </Link>
-                ))
-              ) : (
-                <p className="text-xs text-sidebar-foreground/50 px-3 py-2">
-                  {searchQuery ? "No workspaces found" : "No workspaces yet"}
-                </p>
-              )}
-            </div>
+            </button>
+            {myWorkspacesExpanded && (
+              <div className="space-y-0.5 pl-2">
+                {filteredMyWorkspaces.length > 0 ? (
+                  filteredMyWorkspaces.map((workspace) => (
+                    <Link
+                      href={`/app/${workspace.id}`}
+                      key={workspace.id}
+                      className={cn(
+                        "group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+                        currentWorkspaceId === workspace.id && isInMyWorkspace
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"
+                      )}
+                    >
+                      <FileText className="h-4 w-4 flex-shrink-0" />
+                      <span className="text-sm font-medium truncate flex-1">
+                        {workspace.name}
+                      </span>
+                      {currentWorkspaceId === workspace.id && isInMyWorkspace && (
+                        <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                      )}
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-xs text-sidebar-foreground/50 px-3 py-2">
+                    {searchQuery ? "No workspaces found" : "No workspaces yet"}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Shared Workspaces Section */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between px-2 py-1">
+            <button
+              type="button"
+              onClick={() => setSharedWorkspacesExpanded(!sharedWorkspacesExpanded)}
+              className="w-full flex items-center justify-between px-2 py-2 rounded-lg hover:bg-sidebar-accent/30 transition-colors group"
+            >
               <div className="flex items-center gap-2">
+                <ChevronRight 
+                  className={cn(
+                    "h-4 w-4 text-sidebar-foreground/60 transition-transform",
+                    sharedWorkspacesExpanded && "rotate-90"
+                  )} 
+                />
                 <Users className="h-4 w-4 text-sidebar-foreground/60" />
                 <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider">
                   Shared with Me
@@ -202,35 +225,37 @@ export default function Sidebar({ userID }: SidebarProps) {
               <Badge variant="secondary" className="text-xs h-5 min-w-[20px] justify-center">
                 {filteredSharedWorkspaces.length}
               </Badge>
-            </div>
-            <div className="space-y-0.5">
-              {filteredSharedWorkspaces.length > 0 ? (
-                filteredSharedWorkspaces.map((workspace) => (
-                  <Link
-                    href={`/app/${workspace.id}`}
-                    key={workspace.id}
-                    className={cn(
-                      "group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
-                      currentWorkspaceId === workspace.id && isInSharedWorkspace
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"
-                    )}
-                  >
-                    <FileText className="h-4 w-4 flex-shrink-0" />
-                    <span className="text-sm font-medium truncate flex-1">
-                      {workspace.name}
-                    </span>
-                    {currentWorkspaceId === workspace.id && isInSharedWorkspace && (
-                      <ChevronRight className="h-4 w-4 flex-shrink-0" />
-                    )}
-                  </Link>
-                ))
-              ) : (
-                <p className="text-xs text-sidebar-foreground/50 px-3 py-2">
-                  {searchQuery ? "No workspaces found" : "No shared workspaces"}
-                </p>
-              )}
-            </div>
+            </button>
+            {sharedWorkspacesExpanded && (
+              <div className="space-y-0.5 pl-2">
+                {filteredSharedWorkspaces.length > 0 ? (
+                  filteredSharedWorkspaces.map((workspace) => (
+                    <Link
+                      href={`/app/${workspace.id}`}
+                      key={workspace.id}
+                      className={cn(
+                        "group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+                        currentWorkspaceId === workspace.id && isInSharedWorkspace
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground"
+                      )}
+                    >
+                      <FileText className="h-4 w-4 flex-shrink-0" />
+                      <span className="text-sm font-medium truncate flex-1">
+                        {workspace.name}
+                      </span>
+                      {currentWorkspaceId === workspace.id && isInSharedWorkspace && (
+                        <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                      )}
+                    </Link>
+                  ))
+                ) : (
+                  <p className="text-xs text-sidebar-foreground/50 px-3 py-2">
+                    {searchQuery ? "No workspaces found" : "No shared workspaces"}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
